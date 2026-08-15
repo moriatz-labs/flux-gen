@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Flux is a minimal CLI that turns plain English into desktop wallpapers." />
+    <meta name="theme-color" content="#f8f7f2" />
+    <title>Flux — wallpapers from the command line</title>
+    <link rel="icon" href="/flux-logo-light-cropped.png" type="image/png" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead" aria-label="Primary navigation">
+      <a class="brand" href="#home" aria-label="Flux home"><img src="/flux-logo-light-cropped.png" alt="" width="36" height="36" /></a>
+      <nav>
+        <a class="active" href="#home">Home</a>
+        <a href="#documentation">Documentation</a>
+        <a href="#skills">Skills</a>
+        <a href="#models">Models</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="home" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <img class="hero-mark" src="/flux-logo-light-cropped.png" alt="" width="112" height="112" />
+          <p class="eyebrow">A wallpaper command line</p>
+          <h1 id="hero-title">There are many image generators,<br /> but this one makes <em>wallpapers.</em></h1>
+          <p class="lede">Describe the scene. Flux shapes the prompt, renders for your desktop, and saves the finished image.</p>
+        </div>
+
+        <figure class="showreel">
+          <div class="film-frame">
+            <video autoplay muted loop playsinline controls poster="/wallpapers/aurora-borealis.webp" aria-label="Flux turning plain English prompts into four desktop wallpapers">
+              <source src="/flux-demo.mp4" type="video/mp4" />
+            </video>
+            <span class="playing"><i aria-hidden="true"></i> Made with Flux</span>
+          </div>
+          <figcaption><span>One sentence</span><span>Four wallpaper directions</span><span>Saved locally</span></figcaption>
+        </figure>
+
+        <div class="installer" aria-label="Installation commands">
+          <div class="tabs" role="tablist" aria-label="Choose your shell">
+            <button type="button" role="tab" aria-selected="true" aria-controls="curl-panel" id="curl-tab" data-tab="curl">Curl</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="powershell-panel" id="powershell-tab" data-tab="powershell">PowerShell</button>
+          </div>
+          <div class="command-panel" id="curl-panel" role="tabpanel" aria-labelledby="curl-tab">
+            <code><span aria-hidden="true">$</span> curl -fsSL https://flux-gen.moriatz.com/install.sh | sh</code>
+            <button class="copy" type="button" data-copy="curl -fsSL https://flux-gen.moriatz.com/install.sh | sh" aria-label="Copy Curl installation command">[ copy ]</button>
+          </div>
+          <div class="command-panel" id="powershell-panel" role="tabpanel" aria-labelledby="powershell-tab" hidden>
+            <code><span aria-hidden="true">&gt;</span> irm https://flux-gen.moriatz.com/install.ps1 | iex</code>
+            <button class="copy" type="button" data-copy="irm https://flux-gen.moriatz.com/install.ps1 | iex" aria-label="Copy PowerShell installation command">[ copy ]</button>
+          </div>
+        </div>
+        <p class="first-command">Then type <code>flux a quiet observatory above the clouds at blue hour</code></p>
+      </section>
+
+      <section class="wallpaper-story" aria-labelledby="wallpaper-story-title">
+        <div class="story-heading">
+          <p class="eyebrow">Made for the whole screen</p>
+          <h2 id="wallpaper-story-title">Not square content stretched wide. A scene composed as a desktop.</h2>
+        </div>
+        <figure class="wallpaper wallpaper-wide">
+          <img src="/wallpapers/bioluminescent-sea.webp" alt="Bioluminescent waves beneath a dense star field" loading="lazy" width="1536" height="864" />
+          <figcaption><span>01 / Photographic</span><p>“A midnight coast lit by electric-blue bioluminescence.”</p></figcaption>
+        </figure>
+        <div class="wallpaper-pair">
+          <figure class="wallpaper">
+            <img src="/wallpapers/green-rainforest.webp" alt="An overgrown stone gate surrounded by glowing mushrooms" loading="lazy" width="1536" height="864" />
+            <figcaption><span>02 / Environment</span><p>Quiet edges leave room for icons.</p></figcaption>
+          </figure>
+          <figure class="wallpaper">
+            <img src="/wallpapers/japanese-garden.webp" alt="An autumn Japanese garden with a bridge and koi pond" loading="lazy" width="1536" height="864" />
+            <figcaption><span>03 / Color direction</span><p>Full-bleed, balanced, desktop-safe.</p></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="content-section" id="documentation" aria-labelledby="documentation-title">
+        <p class="eyebrow">Documentation</p>
+        <h2 id="documentation-title">One command from idea to desktop.</h2>
+        <div class="command-list">
+          <div><code>flux &lt;description&gt;</code><span>Generate and save a wallpaper</span></div>
+          <div><code>flux config</code><span>See models, output folder, and key status</span></div>
+          <div><code>flux config key</code><span>Securely add or change an API key</span></div>
+          <div><code>flux -pm</code><span>Choose the prompt model</span></div>
+          <div><code>flux -im</code><span>Choose the image model</span></div>
+        </div>
+      </section>
+
+      <section class="content-section" id="skills" aria-labelledby="skills-title">
+        <p class="eyebrow">Skills</p>
+        <h2 id="skills-title">Wallpaper knowledge, loaded when useful.</h2>
+        <p class="section-intro">Flux follows the portable <code>SKILL.md</code> pattern and automatically combines the right expertise for each description.</p>
+        <div class="skill-grid">
+          <article><h3>Foundation</h3><p>Widescreen structure and desktop-safe breathing room.</p></article>
+          <article><h3>Composition</h3><p>Hierarchy, depth, balance, and deliberate framing.</p></article>
+          <article><h3>Lighting</h3><p>Time, atmosphere, contrast, and cinematic illumination.</p></article>
+          <article><h3>Photography</h3><p>Believable viewpoint, lens character, and rendering.</p></article>
+          <article><h3>Illustration</h3><p>Medium, texture, shape language, and stylization.</p></article>
+          <article><h3>Abstract</h3><p>Form, rhythm, material, gradients, and spatial depth.</p></article>
+          <article><h3>Environment</h3><p>Landscape, architecture, weather, and scale.</p></article>
+          <article><h3>Color</h3><p>Controlled palettes tied to light, objects, and depth.</p></article>
+        </div>
+      </section>
+
+      <section class="content-section models" id="models" aria-labelledby="models-title">
+        <p class="eyebrow">Models</p>
+        <h2 id="models-title">A small, deliberate prompt roster.</h2>
+        <div class="model-list">
+          <div><span>OpenAI</span><strong>GPT-5.6 Luna</strong></div>
+          <div><span>Google</span><strong>Gemini 3.6 Flash</strong></div>
+          <div><span>Anthropic</span><strong>Claude Sonnet 5</strong></div>
+          <div><span>Images</span><strong>Live DEAPI text-to-image catalogue</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <footer><img src="/flux-logo-light-cropped.png" alt="" width="28" height="28" /><span>FluxGen · wallpapers from plain English</span></footer>
+  </body>
+</html>
