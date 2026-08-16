@@ -5,7 +5,7 @@ import { listImageModels } from "./deapi.ts";
 import { generateWallpaper } from "./generate.ts";
 import { getApiKey, hasApiKey, removeApiKey, setApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
-import { applyNextWallpaper, applyWallpaper, configureSlideshow } from "./slideshow.ts";
+import { applyNextWallpaper, applyWallpaper } from "./wallpaper.ts";
 import type { PromptModelId, ProviderId } from "./types.ts";
 
 const providers: Array<{ name: string; value: ProviderId }> = [
@@ -20,12 +20,11 @@ const help = `FluxGen — describe a wallpaper in plain English
 Usage:
   flux <description>       Generate and save a wallpaper
   flux                     Prompt for a description
-  flux setup               Set up keys, models, and the wallpaper slideshow
+  flux setup               Set up keys, models, and wallpaper behavior
   flux config              View configuration and key status
   flux config key          Add, replace, or remove an API key
   flux config enhancement  Turn prompt enhancement on or off
   flux config wallpaper    Apply new wallpapers automatically or save only
-  flux config slideshow    Turn the wallpaper slideshow on or off
   flux prompt-model, -pm   Select the prompt model
   flux image-model, -im    Select a DEAPI image model
   flux models              List supported prompt and image models
@@ -45,7 +44,6 @@ async function showConfig() {
   console.log(`  Output            ${config.outputDirectory}`);
   console.log(`  Enhancement       ${config.enhancement ? "on" : "off"}`);
   console.log(`  Apply wallpaper   ${config.applyWallpaper ? "on" : "off"}`);
-  console.log(`  Slideshow         ${config.slideshow ? "on · every 30 minutes" : "off"}`);
   console.log(`  Prompt model      ${config.promptModel}`);
   console.log(`  Image model       ${config.imageModel}`);
   console.log("\nAPI keys");
@@ -99,22 +97,6 @@ async function configureWallpaperPrompt() {
   config.applyWallpaper = await confirm({ message: "Apply each newly generated wallpaper immediately?", default: config.applyWallpaper });
   await saveConfig(config);
   console.log(config.applyWallpaper ? "New wallpapers will be applied immediately." : "New wallpapers will only be saved.");
-}
-
-async function setSlideshow(enabled: boolean) {
-  const config = await loadConfig();
-  await configureSlideshow(enabled);
-  config.slideshow = enabled;
-  await saveConfig(config);
-  console.log(enabled
-    ? `Wallpaper slideshow enabled. ${config.outputDirectory} rotates every 30 minutes.`
-    : "Wallpaper slideshow disabled.");
-}
-
-async function configureSlideshowPrompt() {
-  const config = await loadConfig();
-  const enabled = await confirm({ message: "Use Pictures/FluxGen as a rotating desktop slideshow?", default: config.slideshow });
-  await setSlideshow(enabled);
 }
 
 async function configurePromptModel() {
@@ -177,13 +159,11 @@ async function setup() {
     console.log(`Could not load image models: ${(error as Error).message}`);
   }
 
-  config.applyWallpaper = await confirm({ message: "Apply each newly generated wallpaper immediately?", default: config.applyWallpaper });
-  const slideshow = await confirm({ message: "Also rotate Pictures/FluxGen as a desktop slideshow every 30 minutes?", default: config.slideshow });
-  await configureSlideshow(slideshow);
-  config.slideshow = slideshow;
+  config.applyWallpaper = true;
   await saveConfig(config);
 
   console.log("\nSetup complete.");
+  console.log("Each newly generated image will be applied as your current wallpaper.");
   console.log('Try: flux "a quiet observatory above the clouds at blue hour"');
 }
 
@@ -230,9 +210,7 @@ async function generate(description: string) {
   if (config.applyWallpaper) {
     try {
       await applyWallpaper(result.path);
-      console.log(config.slideshow
-        ? "Applied as desktop wallpaper. The FluxGen folder will continue rotating."
-        : "Applied as desktop wallpaper.");
+      console.log("Applied as desktop wallpaper.");
     } catch (error) {
       console.log(`Wallpaper saved, but could not be applied: ${(error as Error).message}`);
     }
@@ -274,7 +252,6 @@ export async function runCli(args = Bun.argv.slice(2)) {
     if (subcommand === "key") return configureKey();
     if (subcommand === "enhancement") return configureEnhancement();
     if (subcommand === "wallpaper") return configureWallpaperPrompt();
-    if (subcommand === "slideshow") return configureSlideshowPrompt();
     throw new Error(`Unknown config command: ${subcommand}`);
   }
   if (command === "prompt-model" || command === "-pm") return configurePromptModel();

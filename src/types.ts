@@ -6,7 +6,6 @@ export type SkillSource = "bundled" | "personal" | "project";
 export interface FluxConfig {
   enhancement: boolean;
   applyWallpaper: boolean;
-  slideshow: boolean;
   promptModel: PromptModelId;
   imageModel: string;
   outputDirectory: string;

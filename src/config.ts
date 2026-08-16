@@ -5,7 +5,7 @@ import { configDirectory, defaultOutputDirectory } from "./paths.ts";
 import { promptModelIds, type FluxConfig } from "./types.ts";
 
 export function defaultConfig(): FluxConfig {
-  return { enhancement: true, applyWallpaper: false, slideshow: false, promptModel: "gpt-5.6-luna", imageModel: DEFAULT_IMAGE_MODEL, outputDirectory: defaultOutputDirectory() };
+  return { enhancement: true, applyWallpaper: true, promptModel: "gpt-5.6-luna", imageModel: DEFAULT_IMAGE_MODEL, outputDirectory: defaultOutputDirectory() };
 }
 
 export function configPath() { return join(configDirectory(), "config.json"); }
@@ -17,7 +17,6 @@ export async function loadConfig(path = configPath()): Promise<FluxConfig> {
     return {
       enhancement: typeof parsed.enhancement === "boolean" ? parsed.enhancement : defaults.enhancement,
       applyWallpaper: typeof parsed.applyWallpaper === "boolean" ? parsed.applyWallpaper : defaults.applyWallpaper,
-      slideshow: typeof parsed.slideshow === "boolean" ? parsed.slideshow : defaults.slideshow,
       promptModel: promptModelIds.includes(parsed.promptModel as FluxConfig["promptModel"])
         ? parsed.promptModel as FluxConfig["promptModel"]
         : defaults.promptModel,
