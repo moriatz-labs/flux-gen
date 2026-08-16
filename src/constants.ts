@@ -1,7 +1,7 @@
 import type { PromptModelId, ProviderId } from "./types.ts";
 
 export const APP_NAME = "FluxGen";
-export const VERSION = "0.3.0";
+export const VERSION = "0.4.0";
 export const DEFAULT_IMAGE_MODEL = "Flux_2_Klein_4B_BF16";
 
 export const promptModels: Array<{
@@ -19,4 +19,11 @@ export const envKeys: Record<ProviderId, string> = {
   openai: "OPENAI_API_KEY",
   google: "GEMINI_API_KEY",
   anthropic: "ANTHROPIC_API_KEY"
+};
+
+export const providerKeyUrls: Record<ProviderId, string> = {
+  deapi: "https://app.deapi.ai/settings/api-keys",
+  openai: "https://platform.openai.com/api-keys",
+  google: "https://aistudio.google.com/app/apikey",
+  anthropic: "https://console.anthropic.com/settings/keys"
 };

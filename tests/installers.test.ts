@@ -18,6 +18,7 @@ describe("installers", () => {
     expect(source).toContain('$ProgressPreference = "SilentlyContinue"');
     expect(source).toContain('$ProgressPreference = $previousProgressPreference');
     expect(source).toContain('Write-Host "Downloading Flux for Windows..."');
+    expect(source).toContain("flux setup");
     expect(source).not.toContain("RuntimeInformation");
     expect(textEndpoint.replaceAll("\r\n", "\n")).toBe(source.replaceAll("\r\n", "\n"));
   });
@@ -28,5 +29,6 @@ describe("installers", () => {
     expect(source).toContain('data-tab="linux"');
     expect(source).toContain('data-tab="macos"');
     expect(source).toContain("install.ps1.txt");
+    expect(await readFile(new URL("../website/public/install.sh", import.meta.url), "utf8")).toContain("flux setup");
   });
 });

@@ -55,3 +55,4 @@ case ":$PATH:" in
 esac
 
 echo "Flux installed at $install_dir/flux"
+echo "Run 'flux setup' in a new terminal to get started."
