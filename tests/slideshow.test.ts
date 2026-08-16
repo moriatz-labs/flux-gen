@@ -51,6 +51,16 @@ describe("desktop slideshow", () => {
     expect(calls[0]).toEqual(["gsettings", ["set", "org.gnome.desktop.background", "picture-uri", "file:///home/test/Pictures/FluxGen/sky.png"]]);
   });
 
+  test("applies a Windows wallpaper without a blocking settings broadcast", async () => {
+    const calls: Array<[string, string[]]> = [];
+    const run = async (file: string, args: string[]) => { calls.push([file, args]); return { stdout: "", stderr: "" }; };
+    const path = "C:\\Users\\test\\Pictures\\FluxGen\\sky.png";
+    await applyWallpaper(path, { platform: "win32", run });
+    expect(calls[0]?.[0]).toBe("powershell.exe");
+    expect(calls[0]?.[1].join(" ")).toContain("SystemParametersInfo(20, 0, $args[0], 1)");
+    expect(calls[0]?.[1].at(-1)).toBe(path);
+  });
+
   test("chooses only supported images from the folder", async () => {
     temporary = await mkdtemp(join(tmpdir(), "flux-slideshow-"));
     await writeFile(join(temporary, "wallpaper.webp"), "image");

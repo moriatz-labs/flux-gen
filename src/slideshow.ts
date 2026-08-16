@@ -23,7 +23,7 @@ export interface SlideshowRuntime {
 
 function runner(runtime: SlideshowRuntime) {
   return runtime.run ?? (async (file: string, args: string[]) => {
-    const result = await execFile(file, args, { windowsHide: true });
+    const result = await execFile(file, args, { windowsHide: true, timeout: 15_000 });
     return { stdout: result.stdout, stderr: result.stderr };
   });
 }
@@ -120,7 +120,7 @@ export async function applyWallpaper(path: string, runtime: SlideshowRuntime = {
   const platform = runtime.platform ?? process.platform;
   const run = runner(runtime);
   if (platform === "win32") {
-    const script = `Add-Type @'\nusing System.Runtime.InteropServices;\npublic class FluxWallpaper { [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool SystemParametersInfo(int action, int param, string path, int flags); }\n'@\nif (-not [FluxWallpaper]::SystemParametersInfo(20, 0, $args[0], 3)) { throw "Windows could not set the wallpaper." }`;
+    const script = `Add-Type @'\nusing System.Runtime.InteropServices;\npublic class FluxWallpaper { [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool SystemParametersInfo(int action, int param, string path, int flags); }\n'@\nif (-not [FluxWallpaper]::SystemParametersInfo(20, 0, $args[0], 1)) { throw "Windows could not set the wallpaper." }`;
     await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script, path]);
     return;
   }
