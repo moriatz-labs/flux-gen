@@ -15,6 +15,7 @@ describe("configuration", () => {
     expect(config.promptModel).toBe("gpt-5.6-luna");
     expect(config.imageModel).toBe("Flux_2_Klein_4B_BF16");
     expect(config.slideshow).toBe(false);
+    expect(config.applyWallpaper).toBe(false);
   });
 
   test("round trips nonsecret configuration", async () => {

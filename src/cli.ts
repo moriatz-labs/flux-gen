@@ -24,6 +24,7 @@ Usage:
   flux config              View configuration and key status
   flux config key          Add, replace, or remove an API key
   flux config enhancement  Turn prompt enhancement on or off
+  flux config wallpaper    Apply new wallpapers automatically or save only
   flux config slideshow    Turn the wallpaper slideshow on or off
   flux prompt-model, -pm   Select the prompt model
   flux image-model, -im    Select a DEAPI image model
@@ -43,6 +44,7 @@ async function showConfig() {
   console.log("Flux configuration\n");
   console.log(`  Output            ${config.outputDirectory}`);
   console.log(`  Enhancement       ${config.enhancement ? "on" : "off"}`);
+  console.log(`  Apply wallpaper   ${config.applyWallpaper ? "on" : "off"}`);
   console.log(`  Slideshow         ${config.slideshow ? "on · every 30 minutes" : "off"}`);
   console.log(`  Prompt model      ${config.promptModel}`);
   console.log(`  Image model       ${config.imageModel}`);
@@ -90,6 +92,13 @@ async function configureEnhancement() {
   config.enhancement = await confirm({ message: "Enhance wallpaper prompts?", default: config.enhancement });
   await saveConfig(config);
   console.log(`Prompt enhancement ${config.enhancement ? "enabled" : "disabled"}.`);
+}
+
+async function configureWallpaperPrompt() {
+  const config = await loadConfig();
+  config.applyWallpaper = await confirm({ message: "Apply each newly generated wallpaper immediately?", default: config.applyWallpaper });
+  await saveConfig(config);
+  console.log(config.applyWallpaper ? "New wallpapers will be applied immediately." : "New wallpapers will only be saved.");
 }
 
 async function setSlideshow(enabled: boolean) {
@@ -168,7 +177,8 @@ async function setup() {
     console.log(`Could not load image models: ${(error as Error).message}`);
   }
 
-  const slideshow = await confirm({ message: "Use Pictures/FluxGen as a rotating desktop slideshow?", default: config.slideshow });
+  config.applyWallpaper = await confirm({ message: "Apply each newly generated wallpaper immediately?", default: config.applyWallpaper });
+  const slideshow = await confirm({ message: "Also rotate Pictures/FluxGen as a desktop slideshow every 30 minutes?", default: config.slideshow });
   await configureSlideshow(slideshow);
   config.slideshow = slideshow;
   await saveConfig(config);
@@ -217,10 +227,12 @@ async function generate(description: string) {
     }
   });
   console.log(`\nSaved ${result.path}`);
-  if (config.slideshow) {
+  if (config.applyWallpaper) {
     try {
       await applyWallpaper(result.path);
-      console.log("Applied as desktop wallpaper. The FluxGen folder will continue rotating.");
+      console.log(config.slideshow
+        ? "Applied as desktop wallpaper. The FluxGen folder will continue rotating."
+        : "Applied as desktop wallpaper.");
     } catch (error) {
       console.log(`Wallpaper saved, but could not be applied: ${(error as Error).message}`);
     }
@@ -240,6 +252,7 @@ export async function runCli(args = Bun.argv.slice(2)) {
     if (!subcommand) return showConfig();
     if (subcommand === "key") return configureKey();
     if (subcommand === "enhancement") return configureEnhancement();
+    if (subcommand === "wallpaper") return configureWallpaperPrompt();
     if (subcommand === "slideshow") return configureSlideshowPrompt();
     throw new Error(`Unknown config command: ${subcommand}`);
   }
