@@ -31,12 +31,12 @@
 
         <figure class="showreel">
           <div class="film-frame">
-            <video autoplay muted loop playsinline controls poster="/wallpapers/aurora-borealis.webp" aria-label="Flux turning plain English prompts into four desktop wallpapers">
+            <video autoplay muted loop playsinline controls poster="/flux-demo-poster.webp" aria-label="Flux guided setup, masked API key entry, wallpaper generation, and automatic desktop application">
               <source src="/flux-demo.mp4" type="video/mp4" />
             </video>
             <span class="playing"><i aria-hidden="true"></i> Made with Flux</span>
           </div>
-          <figcaption><span>One sentence</span><span>Four wallpaper directions</span><span>Saved locally</span></figcaption>
+          <figcaption><span>One guided setup</span><span>Plain English prompt</span><span>Applied instantly</span></figcaption>
         </figure>
 
         <div class="installer" aria-label="Installation commands">
@@ -58,28 +58,32 @@
 
       <section class="wallpaper-story" aria-labelledby="wallpaper-story-title">
         <div class="story-heading">
-          <p class="eyebrow">Made for the whole screen</p>
-          <h2 id="wallpaper-story-title">Not square content stretched wide. A scene composed as a desktop.</h2>
+          <div>
+            <p class="eyebrow">Made for the whole screen</p>
+            <p class="gallery-count" aria-live="polite"><span data-carousel-current>01</span> / 20</p>
+          </div>
+          <div>
+            <h2 id="wallpaper-story-title">Twenty directions. Every one composed as a desktop.</h2>
+            <div class="carousel-controls" aria-label="Wallpaper gallery controls">
+              <button type="button" data-carousel-prev aria-label="Previous wallpaper">←</button>
+              <button type="button" data-carousel-next aria-label="Next wallpaper">→</button>
+            </div>
+          </div>
         </div>
-        <figure class="wallpaper wallpaper-wide">
-          <img src="/wallpapers/bioluminescent-sea.webp" alt="Bioluminescent waves beneath a dense star field" loading="lazy" width="1536" height="864" />
-          <figcaption><span>01 / Photographic</span><p>“A midnight coast lit by electric-blue bioluminescence.”</p></figcaption>
-        </figure>
-        <div class="wallpaper-pair">
-          <figure class="wallpaper">
-            <img src="/wallpapers/green-rainforest.webp" alt="An overgrown stone gate surrounded by glowing mushrooms" loading="lazy" width="1536" height="864" />
-            <figcaption><span>02 / Environment</span><p>Quiet edges leave room for icons.</p></figcaption>
-          </figure>
-          <figure class="wallpaper">
-            <img src="/wallpapers/japanese-garden.webp" alt="An autumn Japanese garden with a bridge and koi pond" loading="lazy" width="1536" height="864" />
-            <figcaption><span>03 / Color direction</span><p>Full-bleed, balanced, desktop-safe.</p></figcaption>
-          </figure>
+        <div class="carousel" data-carousel tabindex="0" aria-label="Twenty generated wallpaper examples">
+          <div class="carousel-track" data-carousel-track></div>
         </div>
+        <p class="carousel-help">Drag, swipe, use the arrow keys, or choose the controls.</p>
       </section>
 
       <section class="content-section" id="documentation" aria-labelledby="documentation-title">
         <p class="eyebrow">Documentation</p>
         <h2 id="documentation-title">Your first wallpaper, in three steps.</h2>
+        <p class="docs-intro">One install command, one guided setup, then describe the wallpaper you want in plain English.</p>
+        <div class="docs-install" aria-label="Quick installation commands">
+          <div><span>Windows</span><code>irm https://flux-gen.moriatz.com/install.ps1.txt | iex</code></div>
+          <div><span>macOS</span><code>curl -fsSL https://flux-gen.moriatz.com/install.sh | sh</code></div>
+        </div>
         <ol class="onboarding">
           <li>
             <span class="step-number" aria-hidden="true">01</span>
@@ -88,26 +92,50 @@
           </li>
           <li>
             <span class="step-number" aria-hidden="true">02</span>
-            <div><h3>Run the guided setup</h3><p>Flux links to each provider, stores keys securely, and separately offers instant wallpaper application and folder rotation.</p></div>
+            <div><h3>Run the guided setup</h3><p>Flux opens the right key pages, masks what you paste, stores keys in your operating system credential store, and lets you choose both models.</p></div>
             <code>flux setup</code>
           </li>
           <li>
             <span class="step-number" aria-hidden="true">03</span>
-            <div><h3>Describe a wallpaper</h3><p>Flux saves it to <strong>Pictures/FluxGen</strong>, can apply it immediately, and can rotate the whole folder.</p></div>
+            <div><h3>Describe a wallpaper</h3><p>Flux saves it to <strong>Pictures/FluxGen</strong> and immediately applies it as your current wallpaper.</p></div>
             <code>flux "a quiet blue-hour coast"</code>
           </li>
         </ol>
         <p class="onboarding-note">Want to skip prompt enhancement? Run <code>flux config enhancement</code> and choose <strong>No</strong>. Then only a DEAPI key is required.</p>
+
+        <div class="docs-grid">
+          <article>
+            <p class="eyebrow">Get API keys</p>
+            <h3>Open the provider, create a key, then paste it into <code>flux setup</code>.</h3>
+            <ul class="link-list">
+              <li><a href="https://app.deapi.ai/settings/api-keys" target="_blank" rel="noreferrer"><span>Required</span>DEAPI API keys ↗</a></li>
+              <li><a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer"><span>Prompt model</span>OpenAI API keys ↗</a></li>
+              <li><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer"><span>Prompt model</span>Google AI Studio keys ↗</a></li>
+              <li><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer"><span>Prompt model</span>Anthropic API keys ↗</a></li>
+            </ul>
+            <p class="quickstarts">Official guides: <a href="https://docs.deapi.ai/quickstart" target="_blank" rel="noreferrer">DEAPI</a> · <a href="https://platform.openai.com/docs/quickstart" target="_blank" rel="noreferrer">OpenAI</a> · <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noreferrer">Gemini</a> · <a href="https://platform.claude.com/docs/en/manage-claude/authentication" target="_blank" rel="noreferrer">Anthropic</a></p>
+          </article>
+          <article id="configuration">
+            <p class="eyebrow">Configuration</p>
+            <h3>Change keys and models whenever you want.</h3>
+            <dl class="command-list">
+              <div><dt><code>flux config</code></dt><dd>View settings and masked key status.</dd></div>
+              <div><dt><code>flux config key</code></dt><dd>Add, replace, or remove a key.</dd></div>
+              <div><dt><code>flux -pm</code></dt><dd>Choose the prompt model.</dd></div>
+              <div><dt><code>flux -im</code></dt><dd>Choose the DEAPI image model.</dd></div>
+            </dl>
+          </article>
+        </div>
       </section>
 
       <section class="content-section models" id="models" aria-labelledby="models-title">
         <p class="eyebrow">Models</p>
         <h2 id="models-title">A small, deliberate prompt roster.</h2>
         <div class="model-list">
-          <div><span>OpenAI</span><strong>GPT-5.6 Luna</strong></div>
-          <div><span>Google</span><strong>Gemini 3.6 Flash</strong></div>
-          <div><span>Anthropic</span><strong>Claude Sonnet 5</strong></div>
-          <div><span>Images</span><strong>Live DEAPI text-to-image catalogue</strong></div>
+          <a href="https://developers.openai.com/api/docs/models" target="_blank" rel="noreferrer"><span>OpenAI</span><strong>GPT-5.6 Luna</strong><i>Model docs ↗</i></a>
+          <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noreferrer"><span>Google</span><strong>Gemini 3.6 Flash</strong><i>Model docs ↗</i></a>
+          <a href="https://platform.claude.com/docs/en/about-claude/models/overview" target="_blank" rel="noreferrer"><span>Anthropic</span><strong>Claude Sonnet 5</strong><i>Model docs ↗</i></a>
+          <a href="https://docs.deapi.ai/models" target="_blank" rel="noreferrer"><span>Images</span><strong>Live DEAPI text-to-image catalogue</strong><i>Browse models ↗</i></a>
         </div>
       </section>
     </main>

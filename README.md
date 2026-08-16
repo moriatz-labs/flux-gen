@@ -41,7 +41,7 @@ After installation, run the guided setup:
 flux setup
 ```
 
-Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, and asks whether to apply new wallpapers immediately and whether to rotate the saved folder as a slideshow. Prompt enhancement needs one additional key from OpenAI, Google, or Anthropic.
+Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, and applies each newly generated image as your current wallpaper. Prompt enhancement needs one additional key from OpenAI, Google, or Anthropic.
 
 Then generate:
 
@@ -110,12 +110,11 @@ FluxGen does not load project `.env` files. Store automation credentials in the 
 | --- | --- |
 | `flux <description>` | Generate and save a wallpaper |
 | `flux` | Open the interactive description prompt |
-| `flux setup` | Set up keys, models, and the desktop slideshow |
+| `flux setup` | Set up keys, models, and wallpaper behavior |
 | `flux config` | View nonsecret configuration and key status |
 | `flux config key` | Add, replace, or remove an API key |
 | `flux config enhancement` | Turn prompt enhancement on or off |
 | `flux config wallpaper` | Apply new wallpapers immediately or save them only |
-| `flux config slideshow` | Turn the rotating desktop slideshow on or off |
 | `flux prompt-model`, `flux -pm` | Select the prompt model |
 | `flux image-model`, `flux -im` | Select a live DEAPI image model |
 | `flux models` | List prompt models and live DEAPI image models |
@@ -123,14 +122,14 @@ FluxGen does not load project `.env` files. Store automation credentials in the 
 | `flux wallpaper next` | Immediately rotate to another saved Flux wallpaper |
 | `flux --help` | Show command help |
 
-## Desktop slideshow
+## Desktop wallpaper
 
-During `flux setup`, Flux offers two independent choices: apply each newly generated image immediately, and register `Pictures/FluxGen` as an opt-in slideshow that rotates every 30 minutes.
+Each generated image is saved in `Pictures/FluxGen` and immediately applied as the current wallpaper.
 
-- **Windows:** a per-user scheduled task rotates the wallpaper through the native desktop API.
-- **macOS:** a per-user LaunchAgent rotates the wallpaper through System Events. macOS may ask for Automation permission the first time.
+- **Windows:** Flux applies the image through the native desktop API.
+- **macOS:** Flux applies the image through System Events. macOS may ask for Automation permission the first time.
 
-Run `flux config wallpaper` to change immediate application. Run `flux config slideshow` to enable or completely remove the background slideshow integration.
+Flux does not create a scheduled task or background process. Run `flux config wallpaper` if you prefer to save new images without applying them.
 
 ## Wallpaper skills
 
