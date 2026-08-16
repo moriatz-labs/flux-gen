@@ -2,11 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 
 describe("installers", () => {
-  test("POSIX installer verifies releases before installation", async () => {
+  test("macOS installer verifies releases before installation", async () => {
     const source = await readFile(new URL("../website/public/install.sh", import.meta.url), "utf8");
     expect(source).toContain("checksums.txt");
     expect(source).toContain("sha256sum");
-    expect(source).toContain("Linux arm64");
+    expect(source).toContain('Darwin) platform="darwin"');
+    expect(source).not.toContain('platform="linux"');
   });
   test("Windows installer verifies releases and updates user PATH", async () => {
     const source = await readFile(new URL("../website/public/install.ps1", import.meta.url), "utf8");
@@ -26,8 +27,8 @@ describe("installers", () => {
   test("website presents separate operating-system installers", async () => {
     const source = await readFile(new URL("../website/index.html", import.meta.url), "utf8");
     expect(source).toContain('data-tab="windows"');
-    expect(source).toContain('data-tab="linux"');
     expect(source).toContain('data-tab="macos"');
+    expect(source).not.toContain('data-tab="linux"');
     expect(source).toContain("install.ps1.txt");
     expect(await readFile(new URL("../website/public/install.sh", import.meta.url), "utf8")).toContain("flux setup");
   });

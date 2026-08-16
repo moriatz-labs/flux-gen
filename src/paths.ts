@@ -6,7 +6,7 @@ export function configDirectory(platform = process.platform, environment = proce
     return join(environment.APPDATA ?? join(homedir(), "AppData", "Roaming"), "FluxGen");
   }
   if (platform === "darwin") return join(homedir(), "Library", "Application Support", "FluxGen");
-  return join(environment.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "flux-gen");
+  throw new Error(`Flux supports Windows and macOS. ${platform} is not supported.`);
 }
 
 export function defaultOutputDirectory() { return join(homedir(), "Pictures", "FluxGen"); }

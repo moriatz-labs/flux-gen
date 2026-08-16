@@ -7,9 +7,8 @@ os="$(uname -s)"
 arch="$(uname -m)"
 
 case "$os" in
-  Linux) platform="linux" ;;
   Darwin) platform="darwin" ;;
-  *) echo "Flux does not support $os yet." >&2; exit 1 ;;
+  *) echo "Flux supports macOS and Windows. Use install.ps1.txt on Windows." >&2; exit 1 ;;
 esac
 
 case "$arch" in
@@ -17,11 +16,6 @@ case "$arch" in
   arm64|aarch64) machine="arm64" ;;
   *) echo "Flux does not support $arch yet." >&2; exit 1 ;;
 esac
-
-if [ "$platform" = "linux" ] && [ "$machine" = "arm64" ]; then
-  echo "Flux does not publish a Linux arm64 binary yet." >&2
-  exit 1
-fi
 
 asset="flux-$platform-$machine"
 base="https://github.com/$repo/releases/latest/download"

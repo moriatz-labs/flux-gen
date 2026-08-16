@@ -2,7 +2,6 @@ import { execFile as execFileCallback } from "node:child_process";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { homedir } from "node:os";
-import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { configDirectory } from "./paths.ts";
 
@@ -14,7 +13,6 @@ export interface SlideshowRuntime {
   platform?: NodeJS.Platform;
   executable?: string;
   main?: string;
-  environment?: NodeJS.ProcessEnv;
   run?: (file: string, args: string[]) => Promise<{ stdout: string; stderr: string }>;
   configDir?: string;
   home?: string;
@@ -38,10 +36,6 @@ function command(runtime: SlideshowRuntime) {
 
 function xml(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
-}
-
-function systemd(value: string) {
-  return `"${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
 }
 
 async function ignoreFailure(action: () => Promise<unknown>) {
@@ -85,25 +79,6 @@ export async function configureSlideshow(enabled: boolean, runtime: SlideshowRun
     return;
   }
 
-  if (platform === "linux") {
-    const systemdDirectory = join(runtime.home ?? homedir(), ".config", "systemd", "user");
-    const servicePath = join(systemdDirectory, "flux-gen-slideshow.service");
-    const timerPath = join(systemdDirectory, "flux-gen-slideshow.timer");
-    if (!enabled) {
-      await ignoreFailure(() => run("systemctl", ["--user", "disable", "--now", "flux-gen-slideshow.timer"]));
-      await Promise.all([rm(servicePath, { force: true }), rm(timerPath, { force: true })]);
-      await ignoreFailure(() => run("systemctl", ["--user", "daemon-reload"]));
-      return;
-    }
-    await mkdir(systemdDirectory, { recursive: true });
-    const desktop = runtime.environment?.XDG_CURRENT_DESKTOP ?? process.env.XDG_CURRENT_DESKTOP ?? "";
-    await writeFile(servicePath, `[Unit]\nDescription=Rotate FluxGen wallpaper\n\n[Service]\nType=oneshot\nEnvironment=${systemd(`XDG_CURRENT_DESKTOP=${desktop}`)}\nExecStart=${parts.map(systemd).join(" ")}\n`, { mode: 0o600 });
-    await writeFile(timerPath, `[Unit]\nDescription=Rotate FluxGen wallpapers every ${intervalMinutes} minutes\n\n[Timer]\nOnBootSec=1min\nOnUnitActiveSec=${intervalMinutes}min\nUnit=flux-gen-slideshow.service\n\n[Install]\nWantedBy=timers.target\n`, { mode: 0o600 });
-    await run("systemctl", ["--user", "daemon-reload"]);
-    await run("systemctl", ["--user", "enable", "--now", "flux-gen-slideshow.timer"]);
-    return;
-  }
-
   throw new Error(`Automatic slideshows are not supported on ${platform}.`);
 }
 
@@ -130,35 +105,6 @@ export async function applyWallpaper(path: string, runtime: SlideshowRuntime = {
     const script = 'on run argv\nset wallpaperFile to POSIX file (item 1 of argv)\ntell application "System Events" to tell every desktop to set picture to wallpaperFile\nend run';
     await run("osascript", ["-e", script, path]);
     return;
-  }
-  if (platform === "linux") {
-    const desktop = (runtime.environment ?? process.env).XDG_CURRENT_DESKTOP?.toLowerCase() ?? "";
-    const uri = pathToFileURL(path).href;
-    if (desktop.includes("gnome") || desktop.includes("unity")) {
-      await run("gsettings", ["set", "org.gnome.desktop.background", "picture-uri", uri]);
-      await ignoreFailure(() => run("gsettings", ["set", "org.gnome.desktop.background", "picture-uri-dark", uri]));
-      return;
-    }
-    if (desktop.includes("cinnamon")) {
-      await run("gsettings", ["set", "org.cinnamon.desktop.background", "picture-uri", uri]);
-      return;
-    }
-    if (desktop.includes("mate")) {
-      await run("gsettings", ["set", "org.mate.background", "picture-filename", path]);
-      return;
-    }
-    if (desktop.includes("kde") || desktop.includes("plasma")) {
-      await run("plasma-apply-wallpaperimage", [path]);
-      return;
-    }
-    if (desktop.includes("xfce")) {
-      const listed = await run("xfconf-query", ["-c", "xfce4-desktop", "-l"]);
-      const properties = listed.stdout.split(/\r?\n/).filter((item) => /\/(last-image|image-path)$/.test(item));
-      if (!properties.length) throw new Error("Flux could not find an XFCE desktop wallpaper property.");
-      for (const property of properties) await run("xfconf-query", ["-c", "xfce4-desktop", "-p", property, "-s", path]);
-      return;
-    }
-    throw new Error("Flux supports automatic Linux slideshows on GNOME, KDE Plasma, Cinnamon, MATE, and XFCE.");
   }
   throw new Error(`Applying wallpapers is not supported on ${platform}.`);
 }
