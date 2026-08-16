@@ -1,9 +1,6 @@
 $ErrorActionPreference = "Stop"
 $repo = "moriatz-labs/flux-gen"
-$architectureValue = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
-if ($null -eq $architectureValue) { throw "Flux could not detect the Windows architecture." }
-$architecture = ([string]$architectureValue).ToLowerInvariant()
-if ($architecture -ne "x64") { throw "Flux currently supports Windows x64; detected $architecture." }
+if (-not [Environment]::Is64BitOperatingSystem) { throw "Flux currently supports 64-bit Windows only." }
 
 $asset = "flux-windows-x64.exe"
 $base = "https://github.com/$repo/releases/latest/download"
