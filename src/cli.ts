@@ -4,6 +4,7 @@ import { loadConfig, saveConfig } from "./config.ts";
 import { listImageModels } from "./deapi.ts";
 import { generateWallpaper } from "./generate.ts";
 import { HttpError, isAuthenticationError } from "./http.ts";
+import { compositionChoices, lightingChoices, paletteChoices, styleChoices, type OfflineWallpaperDirection } from "./offline-prompt.ts";
 import { getApiKey, getApiKeyDetails, maskApiKey, removeApiKey, resolveApiKeyEntry, setApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
 import { applyNextWallpaper, applyWallpaper } from "./wallpaper.ts";
@@ -83,7 +84,7 @@ async function configureKey() {
   }
 }
 
-async function requestKey(provider: ProviderId) {
+async function requestKey(provider: ProviderId, options: { optional?: boolean } = {}) {
   const label = providers.find((item) => item.value === provider)?.name ?? provider;
   const details = await getApiKeyDetails(provider);
   const current = details.value;
@@ -96,19 +97,27 @@ async function requestKey(provider: ProviderId) {
     const update = resolveApiKeyEntry(current, replacement);
     if (update.action === "keep") {
       console.log(`Keeping the existing ${label} key.`);
-      return;
+      return true;
     }
     await setApiKey(provider, update.value);
     console.log(environmentKey
       ? `${label} key saved securely. ${envKeys[provider]} remains active.`
       : `${label} key replaced securely.`);
-    return;
+    return true;
   }
-  const value = await password({ message: `Paste ${label} API key`, mask: "•" });
+  const value = await password({
+    message: options.optional ? `Paste ${label} API key, or press Enter to use built-in direction` : `Paste ${label} API key`,
+    mask: "•"
+  });
+  if (options.optional && !value.trim()) {
+    console.log(`No ${label} key added. Flux will use its built-in wallpaper direction.`);
+    return false;
+  }
   const update = resolveApiKeyEntry(null, value);
   if (update.action !== "replace") throw new Error("API key cannot be empty.");
   await setApiKey(provider, update.value);
   console.log(`${label} key saved securely.`);
+  return true;
 }
 
 async function configureEnhancement() {
@@ -194,7 +203,7 @@ async function setup() {
       choices: promptModels.map((model) => ({ name: `${model.label} · ${model.provider}`, value: model.id }))
     });
     const promptProvider = promptModels.find((model) => model.id === config.promptModel)!.provider;
-    await requestKey(promptProvider);
+    await requestKey(promptProvider, { optional: true });
   }
 
   if (models.length) {
@@ -300,11 +309,29 @@ async function showSkills() {
   }
 }
 
+async function collectOfflineWallpaperDirection(): Promise<OfflineWallpaperDirection> {
+  console.log("\nNo prompt-model key is active. A few visual choices will help Flux direct the wallpaper locally.\n");
+  const style = await select({ message: "What should it look like?", choices: styleChoices });
+  const lighting = await select({ message: "What sort of lighting?", choices: lightingChoices });
+  const composition = await select({ message: "How should the scene be composed?", choices: compositionChoices });
+  const palette = await select({ message: "What color mood?", choices: paletteChoices });
+  return { style, lighting, composition, palette };
+}
+
 async function generate(description: string) {
   if (!description.trim()) throw new Error("Please describe the wallpaper you want.");
   const config = await loadConfig();
+  let offlineDirection: OfflineWallpaperDirection | undefined;
+  if (config.enhancement) {
+    const promptProvider = promptModels.find((model) => model.id === config.promptModel)!.provider;
+    const promptKey = await getApiKey(promptProvider);
+    if (!promptKey && process.stdin.isTTY && process.stdout.isTTY) {
+      offlineDirection = await collectOfflineWallpaperDirection();
+    }
+  }
   let lastProgress = -1;
   const result = await generateWallpaper(description.trim(), config, {
+    offlineDirection,
     onPhase: (message) => console.log(`  ${message}`),
     onNotice: (message) => console.log(`  ${message}`),
     onProgress: (progress) => {

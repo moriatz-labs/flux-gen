@@ -4,6 +4,7 @@ import { providerForModel } from "./prompt-providers.ts";
 import { getApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
 import { isAuthenticationError } from "./http.ts";
+import { buildOfflineWallpaperPrompt, type OfflineWallpaperDirection } from "./offline-prompt.ts";
 import type { FluxConfig } from "./types.ts";
 
 export async function generateWallpaper(
@@ -13,6 +14,7 @@ export async function generateWallpaper(
     onPhase?: (message: string) => void;
     onProgress?: (progress?: number) => void;
     onNotice?: (message: string) => void;
+    offlineDirection?: OfflineWallpaperDirection;
   } = {},
   dependencies: {
     getApiKey?: typeof getApiKey;
@@ -37,7 +39,9 @@ export async function generateWallpaper(
     const promptProvider = providerForModel(config.promptModel);
     const promptKey = await readKey(promptProvider);
     if (!promptKey) {
-      callbacks.onNotice?.(`No ${promptProvider} key is configured. Sending your original prompt directly to DEAPI.`);
+      finalPrompt = buildOfflineWallpaperPrompt(request, callbacks.offlineDirection);
+      selectedSkills = ["wallpaper-foundation", "wallpaper-art-direction"];
+      callbacks.onNotice?.(`No ${promptProvider} key is configured. Using Flux's built-in wallpaper direction before DEAPI.`);
     } else {
       callbacks.onPhase?.(`Enhancing with ${config.promptModel}…`);
       try {
@@ -47,7 +51,9 @@ export async function generateWallpaper(
         selectedSkills = enhanced.skills;
       } catch (error) {
         if (!isAuthenticationError(error)) throw error;
-        callbacks.onNotice?.(`${config.promptModel} rejected its API key (${error.status}). Sending your original prompt directly to DEAPI.`);
+        finalPrompt = buildOfflineWallpaperPrompt(request, callbacks.offlineDirection);
+        selectedSkills = ["wallpaper-foundation", "wallpaper-art-direction"];
+        callbacks.onNotice?.(`${config.promptModel} rejected its API key (${error.status}). Using Flux's built-in wallpaper direction before DEAPI.`);
       }
     }
   }

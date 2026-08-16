@@ -4,7 +4,7 @@ import { generateWallpaper } from "../src/generate.ts";
 import { HttpError } from "../src/http.ts";
 
 describe("generation fallback", () => {
-  test("sends the original prompt to DEAPI when the prompt-provider key is missing", async () => {
+  test("builds a wallpaper-directed prompt when the prompt-provider key is missing", async () => {
     const notices: string[] = [];
     let submittedPrompt = "";
     const result = await generateWallpaper("quiet coast", defaultConfig(), {
@@ -15,9 +15,11 @@ describe("generation fallback", () => {
       waitForImage: async () => "https://example.com/wallpaper.png",
       downloadImage: async () => "/tmp/wallpaper.png"
     });
-    expect(submittedPrompt).toBe("quiet coast");
-    expect(result.enhanced).toBe(false);
-    expect(notices[0]).toContain("directly to DEAPI");
+    expect(submittedPrompt).toContain("quiet coast");
+    expect(submittedPrompt).toContain("full-bleed 16:9");
+    expect(submittedPrompt).toContain("calm low-contrast side edges");
+    expect(result.enhanced).toBe(true);
+    expect(notices[0]).toContain("built-in wallpaper direction");
   });
 
   test("falls back to DEAPI when the prompt provider rejects its key", async () => {
@@ -30,7 +32,8 @@ describe("generation fallback", () => {
       waitForImage: async () => "https://example.com/wallpaper.png",
       downloadImage: async () => "/tmp/wallpaper.png"
     });
-    expect(submittedPrompt).toBe("quiet coast");
-    expect(result.enhanced).toBe(false);
+    expect(submittedPrompt).toContain("quiet coast");
+    expect(submittedPrompt).toContain("full-bleed 16:9");
+    expect(result.enhanced).toBe(true);
   });
 });

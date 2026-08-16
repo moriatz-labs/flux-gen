@@ -41,7 +41,7 @@ After installation, run the guided setup:
 flux setup
 ```
 
-Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, validates it with DEAPI, and applies each newly generated image as your current wallpaper. Prompt enhancement can use one additional key from OpenAI, Google, or Anthropic. If that provider key is missing or rejected, Flux sends your original description directly to DEAPI instead of blocking generation.
+Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, validates it with DEAPI, and applies each newly generated image as your current wallpaper. Prompt enhancement can use one additional key from OpenAI, Google, or Anthropic. If that key is missing or rejected, Flux directs the prompt locally with built-in wallpaper heuristics instead of blocking generation.
 
 Then generate:
 
@@ -69,7 +69,16 @@ Follow the official [DEAPI quickstart](https://docs.deapi.ai/quickstart) for the
 
 ### 2. Optionally choose a prompt provider
 
-Prompt enhancement is enabled by default, but its provider key is optional. Add only the key belonging to the prompt model you select. If it is missing or rejected, Flux safely uses your original description with DEAPI.
+Prompt enhancement is enabled by default, but its provider key is optional. Add only the key belonging to the prompt model you select. During setup, press Enter without pasting a provider key to use Flux's built-in wallpaper director.
+
+Without a prompt-model key, an interactive generation asks four quick visual questions:
+
+1. Visual style — for example photographic, illustrated, pixel art, abstract, or cinematic.
+2. Lighting — for example soft daylight, golden hour, blue hour, dramatic, or neon.
+3. Composition — centered, off-center, minimal, or layered panorama.
+4. Color mood — warm, cool, dark, vibrant, or earthy.
+
+Every question includes an **Auto** choice. Automated and redirected commands skip the questions and infer these decisions from the original sentence. In both cases Flux adds a full-bleed 16:9 composition, desktop-safe calm edges, atmospheric depth, controlled color, tactile detail, and a clean image-only field before sending the prompt to DEAPI.
 
 | Provider | How to create the key | Store it under |
 | --- | --- | --- |
@@ -158,7 +167,7 @@ Flux does not create a scheduled task or background process. Run `flux config wa
 
 ## Wallpaper skills
 
-FluxGen bundles nine focused skills for composition, lighting, photography, illustration, abstraction, environments, color direction, and vivid tactile art direction. The foundation and art-direction skills are always active when enhancement is enabled.
+FluxGen bundles nine focused skills for composition, lighting, photography, illustration, abstraction, environments, color direction, and vivid tactile art direction. The foundation and art-direction rules are always applied when enhancement is enabled—even without a prompt-model key, where equivalent deterministic heuristics run locally.
 
 Add your own skills at:
 
@@ -172,7 +181,7 @@ Project skills override personal skills, which override bundled skills with the 
 - **DEAPI key missing:** run `flux config key` and add the DEAPI key, or configure `DEAPI_API_KEY` in your automation environment.
 - **DEAPI returns 401:** the key may have been pasted incorrectly. Flux offers to configure it again immediately, trims surrounding whitespace, and validates the replacement before accepting it. `flux config` shows whether the active value comes from the environment or keychain.
 - **DEAPI returns 403:** Flux offers the same recovery prompt. If the replacement is accepted but 403 continues, verify that the key can use the requested model and that the account has sufficient credits.
-- **Prompt-provider key missing or rejected:** Flux now continues with the original description and DEAPI. Add a valid key if you want wallpaper-skill prompt enhancement.
+- **Prompt-provider key missing or rejected:** Flux uses its local wallpaper director and continues with DEAPI. In an interactive terminal it asks about style, lighting, composition, and color; automation uses inferred defaults.
 - **No image models appear:** check the DEAPI key and account balance, then run `flux models` again.
 - **A key still shows as environment:** environment variables take precedence. Remove or update that variable outside FluxGen.
 - **Command not found after installation:** open a new terminal so the installer's PATH update is loaded.
