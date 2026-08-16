@@ -151,7 +151,7 @@ h1 em { color: #5f95ee; font-weight: 400; text-decoration: underline; text-decor
 .first-command { margin: 18px 0 0; color: var(--muted); font-size: 14px; }
 
 .wallpaper-story {
-  --slide-width: min(82vw, 1120px);
+  --slide-width: 100%;
   padding: 118px max(32px, calc((100vw - 1440px) / 2));
   color: #f7f6f1;
   background: var(--night);
@@ -163,7 +163,7 @@ h1 em { color: #5f95ee; font-weight: 400; text-decoration: underline; text-decor
 h2 { max-width: 760px; margin: 0 0 45px; color: var(--ink); font-size: clamp(36px, 4.4vw, 68px); font-weight: 400; line-height: 1; letter-spacing: -0.047em; }
 .carousel-shell { position: relative; }
 .carousel-controls { pointer-events: none; position: absolute; inset: 0; }
-.carousel-controls button { pointer-events: auto; position: absolute; top: min(28vw, 315px); z-index: 2; width: 48px; height: 48px; border: 1px solid rgba(255, 255, 255, .42); background: rgba(16, 25, 34, .78); color: white; cursor: pointer; font-size: 20px; backdrop-filter: blur(8px); transform: translateY(-50%); }
+.carousel-controls button { pointer-events: auto; position: absolute; top: min(calc(28.125vw - 18px), 405px); z-index: 2; width: 48px; height: 48px; border: 1px solid rgba(255, 255, 255, .42); background: rgba(16, 25, 34, .78); color: white; cursor: pointer; font-size: 20px; backdrop-filter: blur(8px); transform: translateY(-50%); }
 .carousel-controls button:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(16, 25, 34, .94); }
 .carousel-controls button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
 .carousel-previous { left: calc(50% - var(--slide-width) / 2 + 10px); }
@@ -224,8 +224,7 @@ footer img { width: 30px; height: 30px; }
   nav { grid-column: 2; justify-self: end; gap: 15px; }
   nav a { font-size: 10px; }
   .hero { padding-top: 50px; }
-  .wallpaper-story { --slide-width: 88vw; }
-  .carousel-controls button { top: 25vw; }
+  .carousel-controls button { top: calc(28.125vw - 10px); }
   .onboarding li { grid-template-columns: 46px 1fr; }
   .onboarding code { grid-column: 2; justify-self: start; text-align: left; }
   .onboarding-note { margin-left: 74px; }
@@ -249,7 +248,6 @@ footer img { width: 30px; height: 30px; }
   .first-command { display: none; }
   .wallpaper-story { padding: 82px 18px; }
   .story-heading { margin-bottom: 22px; }
-  .wallpaper-story { --slide-width: 90vw; }
   .wallpaper-slide figcaption { grid-template-columns: 1fr; gap: 6px; }
   .content-section { padding: 90px 0; }
   .docs-install div { grid-template-columns: 1fr; gap: 7px; }
