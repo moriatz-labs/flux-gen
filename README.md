@@ -28,7 +28,7 @@ curl -fsSL https://flux-gen.moriatz.com/install.sh | sh
 Windows PowerShell:
 
 ```powershell
-irm https://flux-gen.moriatz.com/install.ps1 | iex
+irm https://flux-gen.moriatz.com/install.ps1.txt | iex
 ```
 
 The installers download the latest native binary from GitHub Releases and verify its SHA-256 checksum before installing it.
