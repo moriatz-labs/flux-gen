@@ -41,7 +41,7 @@ After installation, run the guided setup:
 flux setup
 ```
 
-Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, and asks whether to enable prompt enhancement and the desktop slideshow. Prompt enhancement needs one additional key from OpenAI, Google, or Anthropic.
+Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, and asks whether to apply new wallpapers immediately and whether to rotate the saved folder as a slideshow. Prompt enhancement needs one additional key from OpenAI, Google, or Anthropic.
 
 Then generate:
 
@@ -112,6 +112,7 @@ FluxGen does not load project `.env` files. Store automation credentials in the 
 | `flux config` | View nonsecret configuration and key status |
 | `flux config key` | Add, replace, or remove an API key |
 | `flux config enhancement` | Turn prompt enhancement on or off |
+| `flux config wallpaper` | Apply new wallpapers immediately or save them only |
 | `flux config slideshow` | Turn the rotating desktop slideshow on or off |
 | `flux prompt-model`, `flux -pm` | Select the prompt model |
 | `flux image-model`, `flux -im` | Select a live DEAPI image model |
@@ -122,13 +123,13 @@ FluxGen does not load project `.env` files. Store automation credentials in the 
 
 ## Desktop slideshow
 
-During `flux setup`, Flux can register `Pictures/FluxGen` as an opt-in slideshow that rotates every 30 minutes. Newly generated images are applied immediately.
+During `flux setup`, Flux offers two independent choices: apply each newly generated image immediately, and register `Pictures/FluxGen` as an opt-in slideshow that rotates every 30 minutes.
 
 - **Windows:** a per-user scheduled task rotates the wallpaper through the native desktop API.
 - **macOS:** a per-user LaunchAgent rotates the wallpaper through System Events. macOS may ask for Automation permission the first time.
 - **Linux:** a per-user systemd timer supports GNOME, KDE Plasma, Cinnamon, MATE, and XFCE. Other desktop environments continue saving images but are not automatically changed.
 
-Run `flux config slideshow` at any time to enable or completely remove the operating-system integration.
+Run `flux config wallpaper` to change immediate application. Run `flux config slideshow` to enable or completely remove the background slideshow integration.
 
 ## Wallpaper skills
 
