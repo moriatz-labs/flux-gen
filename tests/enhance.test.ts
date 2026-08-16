@@ -4,13 +4,14 @@ import type { WallpaperSkill } from "../src/types.ts";
 
 const skills: WallpaperSkill[] = [
   { name: "wallpaper-foundation", description: "base", instructions: "base", source: "bundled" },
+  { name: "wallpaper-art-direction", description: "art direction", instructions: "use vivid concrete details", source: "bundled" },
   { name: "cinematic-lighting", description: "light", instructions: "light", source: "bundled" },
   { name: "color-direction", description: "color", instructions: "color", source: "bundled" }
 ];
 
 describe("skill selection", () => {
   test("accepts only available specialist names", () => {
-    expect(parseSelectedSkills('{"skills":["cinematic-lighting","invented","wallpaper-foundation"]}', skills)).toEqual(["cinematic-lighting"]);
+    expect(parseSelectedSkills('{"skills":["cinematic-lighting","invented","wallpaper-foundation","wallpaper-art-direction"]}', skills)).toEqual(["cinematic-lighting"]);
   });
   test("falls back safely on malformed JSON", () => {
     expect(parseSelectedSkills("not json", skills)).toEqual([]);
@@ -25,6 +26,7 @@ describe("skill selection", () => {
     const fakeFetch = async () => Response.json({ output_text: responses.shift() });
     const result = await enhancePrompt({ request: "quiet lake", model: "gpt-5.6-luna", apiKey: "secret", skills, fetchImplementation: fakeFetch as unknown as typeof fetch });
     expect(result.prompt).toContain("alpine lake");
+    expect(result.skills).toContain("wallpaper-art-direction");
     expect(responses).toHaveLength(0);
   });
 });

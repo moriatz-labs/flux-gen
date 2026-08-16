@@ -28,4 +28,13 @@ describe("skills", () => {
     expect(foundation?.source).toBe("project");
     expect(foundation?.instructions).toContain("local version");
   });
+
+  test("bundles the vivid wallpaper art-direction recipe", async () => {
+    temporary = await mkdtemp(join(tmpdir(), "flux-skills-"));
+    const catalogue = await discoverSkills(temporary);
+    const skill = catalogue.skills.find((candidate) => candidate.name === "wallpaper-art-direction");
+    expect(skill?.source).toBe("bundled");
+    expect(skill?.instructions).toContain("Lower-capability model guardrails");
+    expect(skill?.instructions).toContain("midnight blue, ultraviolet");
+  });
 });
