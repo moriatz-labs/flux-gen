@@ -14,6 +14,8 @@ describe("installers", () => {
     expect(source).toContain("Get-FileHash");
     expect(source).toContain('"Path", "User"');
     expect(source).toContain("[string]::IsNullOrWhiteSpace($userPath)");
+    expect(source).toContain("[Environment]::Is64BitOperatingSystem");
+    expect(source).not.toContain("RuntimeInformation");
     expect(textEndpoint.replaceAll("\r\n", "\n")).toBe(source.replaceAll("\r\n", "\n"));
   });
 
