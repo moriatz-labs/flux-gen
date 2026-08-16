@@ -56,7 +56,11 @@ if (carousel && carouselTrack) {
   let autoplay: number | undefined;
   const show = (index: number, behavior: ScrollBehavior = "smooth") => {
     activeIndex = (index + slides.length) % slides.length;
-    slides[activeIndex]?.scrollIntoView({ behavior, block: "nearest", inline: "center" });
+    const slide = slides[activeIndex];
+    if (slide) {
+      const left = slide.offsetLeft - (carouselTrack.clientWidth - slide.offsetWidth) / 2;
+      carouselTrack.scrollTo({ left, behavior });
+    }
     if (carouselCurrent) carouselCurrent.textContent = String(activeIndex + 1).padStart(2, "0");
   };
   const stopAutoplay = () => window.clearInterval(autoplay);
@@ -76,6 +80,11 @@ if (carousel && carouselTrack) {
   carousel.addEventListener("pointerleave", startAutoplay);
   carousel.addEventListener("focusin", stopAutoplay);
   carousel.addEventListener("focusout", startAutoplay);
+  const visibilityObserver = new IntersectionObserver(([entry]) => {
+    if (entry?.isIntersecting) startAutoplay();
+    else stopAutoplay();
+  }, { threshold: 0.2 });
+  visibilityObserver.observe(carousel);
   carouselTrack.addEventListener("scrollend", () => {
     const trackCenter = carouselTrack.scrollLeft + carouselTrack.clientWidth / 2;
     const closest = slides.reduce((best, slide, index) => {
@@ -85,7 +94,6 @@ if (carousel && carouselTrack) {
     activeIndex = closest.index;
     if (carouselCurrent) carouselCurrent.textContent = String(activeIndex + 1).padStart(2, "0");
   });
-  startAutoplay();
 }
 
 const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-tab]")];
