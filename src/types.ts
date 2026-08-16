@@ -1,4 +1,12 @@
-export const promptModelIds = ["gpt-5.6-luna", "gemini-3.6-flash", "claude-sonnet-5"] as const;
+export const promptModelIds = [
+  "gpt-5.6-luna",
+  "gpt-5.6-terra",
+  "gpt-5.6-sol",
+  "gemini-3.6-flash",
+  "claude-haiku-4-5",
+  "claude-sonnet-5",
+  "claude-opus-5"
+] as const;
 export type PromptModelId = (typeof promptModelIds)[number];
 export type ProviderId = "deapi" | "openai" | "google" | "anthropic";
 export type SkillSource = "bundled" | "personal" | "project";

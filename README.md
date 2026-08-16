@@ -71,6 +71,16 @@ Follow the official [DEAPI quickstart](https://docs.deapi.ai/quickstart) for the
 
 Prompt enhancement is enabled by default, but its provider key is optional. Add only the key belonging to the prompt model you select. During setup, press Enter without pasting a provider key to use Flux's built-in wallpaper director.
 
+Choose a model during `flux setup` or change it later with `flux -pm`:
+
+| Provider | Prompt models |
+| --- | --- |
+| OpenAI | `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-5.6-sol` |
+| Google | `gemini-3.6-flash` |
+| Anthropic | `claude-haiku-4-5`, `claude-sonnet-5`, `claude-opus-5` |
+
+Luna and Haiku favor cost and speed, Terra and Sonnet balance quality with cost, and Sol and Opus favor maximum prompt quality. Provider access and billing still determine which models an API key can use. Run `flux models` to see the complete prompt roster and the live DEAPI image-model catalogue.
+
 Without a prompt-model key, an interactive generation asks four quick visual questions:
 
 1. Visual style — for example photographic, illustrated, pixel art, abstract, or cinematic.
@@ -190,8 +200,17 @@ Project skills override personal skills, which override bundled skills with the 
 
 Requires [Bun](https://bun.sh/) 1.3.5 or newer.
 
+Clone the public repository and install its locked dependencies:
+
 ```sh
+git clone https://github.com/moriatz-labs/flux-gen.git
+cd flux-gen
 bun install --frozen-lockfile
+```
+
+Run the CLI, website, and full verification suite:
+
+```sh
 bun run dev -- a misty forest at dawn
 bun run dev:website
 bun run check
@@ -208,6 +227,18 @@ Regenerate the website demo video with FFmpeg available on `PATH`:
 ```sh
 bun run video
 ```
+
+### Add a prompt model
+
+Flux keeps its selectable prompt models deliberately explicit:
+
+1. Add the provider's exact API model ID to `promptModelIds` in `src/types.ts`.
+2. Add its label and provider mapping to `promptModels` in `src/constants.ts`.
+3. If it uses OpenAI, Google, or Anthropic, the existing adapter in `src/prompt-providers.ts` handles the request. A new provider also needs a provider ID, key URL, environment-variable mapping, credential-store option, and request adapter.
+4. Add provider mapping and response-shape coverage in `tests/providers.test.ts`.
+5. Update the model roster in `website/index.html` and run `bun run check`.
+
+Use only model IDs documented by the provider. DEAPI image models do not need to be hard-coded: `flux -im` discovers its current text-to-image catalogue dynamically.
 
 Native Windows x64, macOS x64, and macOS arm64 binaries are published with SHA-256 checksums for tagged releases. Linux is not currently supported.
 

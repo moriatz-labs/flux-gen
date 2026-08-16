@@ -67,6 +67,16 @@ nav a {
 }
 nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 21px; height: 1px; background: transparent; }
 nav a.active::after, nav a:hover::after { background: var(--blue); }
+.github-link {
+  grid-column: 3;
+  justify-self: end;
+  color: #59636c;
+  font: 650 11px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .09em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.github-link:hover { color: #3e6faf; }
 
 .hero {
   width: min(1260px, calc(100% - 64px));
@@ -226,9 +236,10 @@ footer img { width: 30px; height: 30px; }
 
 @media (max-width: 800px) {
   .masthead, .hero, .content-section, footer { width: calc(100% - 28px); }
-  .masthead { padding: 0 17px; grid-template-columns: auto 1fr; }
+  .masthead { padding: 0 17px; grid-template-columns: auto 1fr auto; }
   nav { grid-column: 2; justify-self: end; gap: 15px; }
   nav a { font-size: 10px; }
+  .github-link { grid-column: 3; margin-left: 18px; font-size: 10px; }
   .hero { padding-top: 50px; }
   .onboarding li { grid-template-columns: 46px 1fr; }
   .onboarding code { grid-column: 2; justify-self: start; text-align: left; }
@@ -238,6 +249,7 @@ footer img { width: 30px; height: 30px; }
 @media (max-width: 560px) {
   .masthead { height: 64px; top: 10px; margin-top: 10px; }
   nav a:nth-child(3) { display: none; }
+  .github-link { margin-left: 12px; }
   .hero { padding: 48px 0 82px; }
   .hero-mark { width: 84px; height: 84px; margin-bottom: 20px; }
   h1 br { display: none; }

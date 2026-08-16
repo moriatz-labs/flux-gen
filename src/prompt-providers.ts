@@ -56,7 +56,7 @@ export async function completePrompt(
       "anthropic-version": "2023-06-01",
       "content-type": "application/json"
     },
-    body: JSON.stringify({ model, system, messages: [{ role: "user", content: user }], max_tokens: 500, temperature: 0.55 })
+    body: JSON.stringify({ model, system, messages: [{ role: "user", content: user }], max_tokens: 500 })
   }, fetchImplementation);
   return requireText(payload.content?.filter((item) => item.type === "text").map((item) => item.text ?? "").join(""), "Anthropic");
 }

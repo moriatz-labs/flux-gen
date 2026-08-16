@@ -1,7 +1,7 @@
 import type { PromptModelId, ProviderId } from "./types.ts";
 
 export const APP_NAME = "FluxGen";
-export const VERSION = "0.8.1";
+export const VERSION = "0.9.0";
 export const DEFAULT_IMAGE_MODEL = "Flux_2_Klein_4B_BF16";
 
 export const promptModels: Array<{
@@ -10,8 +10,12 @@ export const promptModels: Array<{
   label: string;
 }> = [
   { id: "gpt-5.6-luna", provider: "openai", label: "GPT-5.6 Luna" },
+  { id: "gpt-5.6-terra", provider: "openai", label: "GPT-5.6 Terra" },
+  { id: "gpt-5.6-sol", provider: "openai", label: "GPT-5.6 Sol" },
   { id: "gemini-3.6-flash", provider: "google", label: "Gemini 3.6 Flash" },
-  { id: "claude-sonnet-5", provider: "anthropic", label: "Claude Sonnet 5" }
+  { id: "claude-haiku-4-5", provider: "anthropic", label: "Claude Haiku 4.5" },
+  { id: "claude-sonnet-5", provider: "anthropic", label: "Claude Sonnet 5" },
+  { id: "claude-opus-5", provider: "anthropic", label: "Claude Opus 5" }
 ];
 
 export const envKeys: Record<ProviderId, string> = {
