@@ -16,7 +16,6 @@
       <nav>
         <a class="active" href="#home">Home</a>
         <a href="#documentation">Documentation</a>
-        <a href="#skills">Skills</a>
         <a href="#models">Models</a>
       </nav>
     </header>
@@ -54,7 +53,7 @@
             <button class="copy" type="button" data-copy="irm https://flux-gen.moriatz.com/install.ps1 | iex" aria-label="Copy PowerShell installation command">[ copy ]</button>
           </div>
         </div>
-        <p class="first-command">Then type <code>flux a quiet observatory above the clouds at blue hour</code></p>
+        <p class="first-command">After setup, type <code>flux a quiet observatory above the clouds at blue hour</code></p>
       </section>
 
       <section class="wallpaper-story" aria-labelledby="wallpaper-story-title">
@@ -80,30 +79,30 @@
 
       <section class="content-section" id="documentation" aria-labelledby="documentation-title">
         <p class="eyebrow">Documentation</p>
-        <h2 id="documentation-title">One command from idea to desktop.</h2>
-        <div class="command-list">
-          <div><code>flux &lt;description&gt;</code><span>Generate and save a wallpaper</span></div>
-          <div><code>flux config</code><span>See models, output folder, and key status</span></div>
-          <div><code>flux config key</code><span>Securely add or change an API key</span></div>
-          <div><code>flux -pm</code><span>Choose the prompt model</span></div>
-          <div><code>flux -im</code><span>Choose the image model</span></div>
-        </div>
-      </section>
-
-      <section class="content-section" id="skills" aria-labelledby="skills-title">
-        <p class="eyebrow">Skills</p>
-        <h2 id="skills-title">Wallpaper knowledge, loaded when useful.</h2>
-        <p class="section-intro">Flux follows the portable <code>SKILL.md</code> pattern and automatically combines the right expertise for each description.</p>
-        <div class="skill-grid">
-          <article><h3>Foundation</h3><p>Widescreen structure and desktop-safe breathing room.</p></article>
-          <article><h3>Composition</h3><p>Hierarchy, depth, balance, and deliberate framing.</p></article>
-          <article><h3>Lighting</h3><p>Time, atmosphere, contrast, and cinematic illumination.</p></article>
-          <article><h3>Photography</h3><p>Believable viewpoint, lens character, and rendering.</p></article>
-          <article><h3>Illustration</h3><p>Medium, texture, shape language, and stylization.</p></article>
-          <article><h3>Abstract</h3><p>Form, rhythm, material, gradients, and spatial depth.</p></article>
-          <article><h3>Environment</h3><p>Landscape, architecture, weather, and scale.</p></article>
-          <article><h3>Color</h3><p>Controlled palettes tied to light, objects, and depth.</p></article>
-        </div>
+        <h2 id="documentation-title">Your first wallpaper, in four steps.</h2>
+        <ol class="onboarding">
+          <li>
+            <span class="step-number" aria-hidden="true">01</span>
+            <div><h3>Install Flux</h3><p>Use the installer above, then open a new terminal.</p></div>
+            <code>flux --version</code>
+          </li>
+          <li>
+            <span class="step-number" aria-hidden="true">02</span>
+            <div><h3>Add your API keys</h3><p>Add DEAPI first. If prompt enhancement is on, add one prompt-provider key too.</p></div>
+            <code>flux config key</code>
+          </li>
+          <li>
+            <span class="step-number" aria-hidden="true">03</span>
+            <div><h3>Choose your models</h3><p>Pick a prompt model, then choose from the live DEAPI image catalogue.</p></div>
+            <code>flux -pm&nbsp;&nbsp; flux -im</code>
+          </li>
+          <li>
+            <span class="step-number" aria-hidden="true">04</span>
+            <div><h3>Describe a wallpaper</h3><p>Flux generates it and saves the image to <strong>Pictures/FluxGen</strong>.</p></div>
+            <code>flux "a quiet blue-hour coast"</code>
+          </li>
+        </ol>
+        <p class="onboarding-note">Want to skip prompt enhancement? Run <code>flux config enhancement</code> and choose <strong>No</strong>. Then only a DEAPI key is required.</p>
       </section>
 
       <section class="content-section models" id="models" aria-labelledby="models-title">
