@@ -10,7 +10,18 @@ describe("installers", () => {
   });
   test("Windows installer verifies releases and updates user PATH", async () => {
     const source = await readFile(new URL("../website/public/install.ps1", import.meta.url), "utf8");
+    const textEndpoint = await readFile(new URL("../website/public/install.ps1.txt", import.meta.url), "utf8");
     expect(source).toContain("Get-FileHash");
     expect(source).toContain('"Path", "User"');
+    expect(source).toContain("[string]::IsNullOrWhiteSpace($userPath)");
+    expect(textEndpoint.replaceAll("\r\n", "\n")).toBe(source.replaceAll("\r\n", "\n"));
+  });
+
+  test("website presents separate operating-system installers", async () => {
+    const source = await readFile(new URL("../website/index.html", import.meta.url), "utf8");
+    expect(source).toContain('data-tab="windows"');
+    expect(source).toContain('data-tab="linux"');
+    expect(source).toContain('data-tab="macos"');
+    expect(source).toContain("install.ps1.txt");
   });
 });

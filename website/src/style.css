@@ -206,7 +206,7 @@ footer img { width: 30px; height: 30px; }
   .playing { top: 10px; right: 10px; }
   .showreel figcaption { grid-template-columns: 1fr 1fr; }
   .showreel figcaption span:nth-child(2) { display: none; }
-  .tabs button { min-width: 50%; padding-inline: 10px; }
+  .tabs button { min-width: 33.333%; padding-inline: 8px; }
   .command-panel { min-height: 132px; padding: 20px; align-items: stretch; flex-direction: column; }
   .command-panel code { overflow-wrap: anywhere; }
   .copy { align-self: flex-end; }

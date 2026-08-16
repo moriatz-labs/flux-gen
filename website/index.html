@@ -40,17 +40,22 @@
         </figure>
 
         <div class="installer" aria-label="Installation commands">
-          <div class="tabs" role="tablist" aria-label="Choose your shell">
-            <button type="button" role="tab" aria-selected="true" aria-controls="curl-panel" id="curl-tab" data-tab="curl">Curl</button>
-            <button type="button" role="tab" aria-selected="false" aria-controls="powershell-panel" id="powershell-tab" data-tab="powershell">PowerShell</button>
+          <div class="tabs" role="tablist" aria-label="Choose your operating system">
+            <button type="button" role="tab" aria-selected="true" aria-controls="windows-panel" id="windows-tab" data-tab="windows">Windows</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="linux-panel" id="linux-tab" data-tab="linux">Linux</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="macos-panel" id="macos-tab" data-tab="macos">macOS</button>
           </div>
-          <div class="command-panel" id="curl-panel" role="tabpanel" aria-labelledby="curl-tab">
+          <div class="command-panel" id="windows-panel" role="tabpanel" aria-labelledby="windows-tab">
+            <code><span aria-hidden="true">&gt;</span> irm https://flux-gen.moriatz.com/install.ps1.txt | iex</code>
+            <button class="copy" type="button" data-copy="irm https://flux-gen.moriatz.com/install.ps1.txt | iex" aria-label="Copy Windows installation command">[ copy ]</button>
+          </div>
+          <div class="command-panel" id="linux-panel" role="tabpanel" aria-labelledby="linux-tab" hidden>
             <code><span aria-hidden="true">$</span> curl -fsSL https://flux-gen.moriatz.com/install.sh | sh</code>
-            <button class="copy" type="button" data-copy="curl -fsSL https://flux-gen.moriatz.com/install.sh | sh" aria-label="Copy Curl installation command">[ copy ]</button>
+            <button class="copy" type="button" data-copy="curl -fsSL https://flux-gen.moriatz.com/install.sh | sh" aria-label="Copy Linux installation command">[ copy ]</button>
           </div>
-          <div class="command-panel" id="powershell-panel" role="tabpanel" aria-labelledby="powershell-tab" hidden>
-            <code><span aria-hidden="true">&gt;</span> irm https://flux-gen.moriatz.com/install.ps1 | iex</code>
-            <button class="copy" type="button" data-copy="irm https://flux-gen.moriatz.com/install.ps1 | iex" aria-label="Copy PowerShell installation command">[ copy ]</button>
+          <div class="command-panel" id="macos-panel" role="tabpanel" aria-labelledby="macos-tab" hidden>
+            <code><span aria-hidden="true">$</span> curl -fsSL https://flux-gen.moriatz.com/install.sh | sh</code>
+            <button class="copy" type="button" data-copy="curl -fsSL https://flux-gen.moriatz.com/install.sh | sh" aria-label="Copy macOS installation command">[ copy ]</button>
           </div>
         </div>
         <p class="first-command">After setup, type <code>flux a quiet observatory above the clouds at blue hour</code></p>
