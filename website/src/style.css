@@ -152,18 +152,24 @@ h1 em { color: #5f95ee; font-weight: 400; text-decoration: underline; text-decor
 
 .wallpaper-story {
   --slide-width: 100%;
-  padding: 118px max(32px, calc((100vw - 1440px) / 2));
+  padding: clamp(30px, 5.5vh, 58px) max(24px, calc((100vw - 1440px) / 2)) 42px;
   color: #f7f6f1;
   background: var(--night);
 }
-.story-heading { display: flex; justify-content: space-between; gap: 32px; align-items: baseline; margin-bottom: 28px; }
+.story-heading,
+.carousel-shell,
+.carousel-help {
+  width: min(1180px, 100%, calc((100svh - 190px) * 16 / 9));
+  margin-inline: auto;
+}
+.story-heading { display: flex; justify-content: space-between; gap: 32px; align-items: baseline; margin-bottom: 24px; }
 .story-heading .eyebrow { color: var(--yellow); }
 .gallery-count { margin: 0; color: #7f8b96; font: 500 12px/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .1em; }
 .gallery-count span { color: white; font-size: 22px; }
 h2 { max-width: 760px; margin: 0 0 45px; color: var(--ink); font-size: clamp(36px, 4.4vw, 68px); font-weight: 400; line-height: 1; letter-spacing: -0.047em; }
-.carousel-shell { position: relative; }
+.carousel-shell { position: relative; container-type: inline-size; }
 .carousel-controls { pointer-events: none; position: absolute; inset: 0; }
-.carousel-controls button { pointer-events: auto; position: absolute; top: min(calc(28.125vw - 18px), 405px); z-index: 2; width: 48px; height: 48px; border: 1px solid rgba(255, 255, 255, .42); background: rgba(16, 25, 34, .78); color: white; cursor: pointer; font-size: 20px; backdrop-filter: blur(8px); transform: translateY(-50%); }
+.carousel-controls button { pointer-events: auto; position: absolute; top: 28.125cqw; z-index: 2; width: 44px; height: 44px; border: 1px solid rgba(255, 255, 255, .42); background: rgba(16, 25, 34, .78); color: white; cursor: pointer; font-size: 20px; backdrop-filter: blur(8px); transform: translateY(-50%); }
 .carousel-controls button:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(16, 25, 34, .94); }
 .carousel-controls button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
 .carousel-previous { left: calc(50% - var(--slide-width) / 2 + 10px); }
@@ -172,11 +178,11 @@ h2 { max-width: 760px; margin: 0 0 45px; color: var(--ink); font-size: clamp(36p
 .carousel-track { display: flex; gap: 22px; overflow-x: auto; padding-inline: calc((100% - var(--slide-width)) / 2); scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-inline: contain; }
 .carousel-track::-webkit-scrollbar { display: none; }
 .wallpaper-slide { flex: 0 0 var(--slide-width); margin: 0; scroll-snap-align: center; }
-.wallpaper-slide img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #1a222b; }
+.wallpaper-slide img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #1a222b; }
 .wallpaper-slide figcaption { display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: start; padding: 16px 2px 2px; color: #c2c9cf; }
 .wallpaper-slide figcaption span { color: var(--blue); font: 650 10px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
 .wallpaper-slide figcaption p { max-width: 620px; margin: 0; font-size: 17px; }
-.carousel-help { margin: 28px 0 0; color: #78838d; font: 600 10px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.carousel-help { margin-top: 18px; color: #78838d; font: 600 10px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
 
 .content-section { width: min(1080px, calc(100% - 64px)); margin: 0 auto; padding: 130px 0; border-top: 1px solid var(--rule); scroll-margin-top: 110px; }
 .docs-intro { max-width: 660px; margin: -24px 0 36px; color: #656c72; font-size: 18px; line-height: 1.5; }
@@ -224,7 +230,6 @@ footer img { width: 30px; height: 30px; }
   nav { grid-column: 2; justify-self: end; gap: 15px; }
   nav a { font-size: 10px; }
   .hero { padding-top: 50px; }
-  .carousel-controls button { top: calc(28.125vw - 10px); }
   .onboarding li { grid-template-columns: 46px 1fr; }
   .onboarding code { grid-column: 2; justify-self: start; text-align: left; }
   .onboarding-note { margin-left: 74px; }
@@ -246,8 +251,11 @@ footer img { width: 30px; height: 30px; }
   .command-panel code { overflow-wrap: anywhere; }
   .copy { align-self: flex-end; }
   .first-command { display: none; }
-  .wallpaper-story { padding: 82px 18px; }
-  .story-heading { margin-bottom: 22px; }
+  .wallpaper-story { padding: 52px 18px 44px; }
+  .story-heading,
+  .carousel-shell,
+  .carousel-help { width: min(100%, calc((100svh - 180px) * 16 / 9)); }
+  .story-heading { margin-bottom: 20px; }
   .wallpaper-slide figcaption { grid-template-columns: 1fr; gap: 6px; }
   .content-section { padding: 90px 0; }
   .docs-install div { grid-template-columns: 1fr; gap: 7px; }

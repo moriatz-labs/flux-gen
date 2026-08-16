@@ -52,15 +52,32 @@ if (carousel && carouselTrack) {
   });
 
   const slides = [...carouselTrack.querySelectorAll<HTMLElement>("[data-slide]")];
+  const firstClone = slides[0]?.cloneNode(true) as HTMLElement | undefined;
+  const lastClone = slides.at(-1)?.cloneNode(true) as HTMLElement | undefined;
+  if (firstClone && lastClone) {
+    firstClone.dataset.carouselClone = "first";
+    lastClone.dataset.carouselClone = "last";
+    firstClone.setAttribute("aria-hidden", "true");
+    lastClone.setAttribute("aria-hidden", "true");
+    firstClone.querySelector("img")?.setAttribute("loading", "lazy");
+    lastClone.querySelector("img")?.setAttribute("loading", "lazy");
+    carouselTrack.prepend(lastClone);
+    carouselTrack.append(firstClone);
+  }
+  const physicalSlides = [...carouselTrack.querySelectorAll<HTMLElement>("[data-slide]")];
   let activeIndex = 0;
   let autoplay: number | undefined;
+  const centerSlide = (slide: HTMLElement, behavior: ScrollBehavior) => {
+    const left = slide.offsetLeft - (carouselTrack.clientWidth - slide.offsetWidth) / 2;
+    carouselTrack.scrollTo({ left, behavior });
+  };
   const show = (index: number, behavior: ScrollBehavior = "smooth") => {
+    const movingPastEnd = index === slides.length;
+    const movingBeforeStart = index === -1;
     activeIndex = (index + slides.length) % slides.length;
-    const slide = slides[activeIndex];
-    if (slide) {
-      const left = slide.offsetLeft - (carouselTrack.clientWidth - slide.offsetWidth) / 2;
-      carouselTrack.scrollTo({ left, behavior });
-    }
+    const physicalIndex = movingPastEnd ? physicalSlides.length - 1 : movingBeforeStart ? 0 : activeIndex + 1;
+    const slide = physicalSlides[physicalIndex];
+    if (slide) centerSlide(slide, behavior);
     if (carouselCurrent) carouselCurrent.textContent = String(activeIndex + 1).padStart(2, "0");
   };
   const stopAutoplay = () => window.clearInterval(autoplay);
@@ -87,13 +104,24 @@ if (carousel && carouselTrack) {
   visibilityObserver.observe(carousel);
   carouselTrack.addEventListener("scrollend", () => {
     const trackCenter = carouselTrack.scrollLeft + carouselTrack.clientWidth / 2;
-    const closest = slides.reduce((best, slide, index) => {
+    const closest = physicalSlides.reduce((best, slide, index) => {
       const center = slide.offsetLeft + slide.offsetWidth / 2;
       return Math.abs(center - trackCenter) < best.distance ? { index, distance: Math.abs(center - trackCenter) } : best;
     }, { index: 0, distance: Number.POSITIVE_INFINITY });
-    activeIndex = closest.index;
+    if (closest.index === 0) {
+      activeIndex = slides.length - 1;
+      const originalLast = physicalSlides[slides.length];
+      if (originalLast) centerSlide(originalLast, "auto");
+    } else if (closest.index === physicalSlides.length - 1) {
+      activeIndex = 0;
+      const originalFirst = physicalSlides[1];
+      if (originalFirst) centerSlide(originalFirst, "auto");
+    } else {
+      activeIndex = closest.index - 1;
+    }
     if (carouselCurrent) carouselCurrent.textContent = String(activeIndex + 1).padStart(2, "0");
   });
+  show(0, "auto");
 }
 
 const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-tab]")];
