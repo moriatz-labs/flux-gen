@@ -57,8 +57,11 @@ describe("desktop slideshow", () => {
     const path = "C:\\Users\\test\\Pictures\\FluxGen\\sky.png";
     await applyWallpaper(path, { platform: "win32", run });
     expect(calls[0]?.[0]).toBe("powershell.exe");
-    expect(calls[0]?.[1].join(" ")).toContain("SystemParametersInfo(20, 0, $args[0], 1)");
-    expect(calls[0]?.[1].at(-1)).toBe(path);
+    expect(calls[0]?.[1]).toContain("-EncodedCommand");
+    const command = Buffer.from(calls[0]?.[1].at(-1) ?? "", "base64").toString("utf16le");
+    expect(command).toContain("SystemParametersInfo(20, 0, $wallpaperPath, 1)");
+    expect(command).toContain(Buffer.from(path, "utf8").toString("base64"));
+    expect(calls[0]?.[1].join(" ")).not.toContain(path);
   });
 
   test("chooses only supported images from the folder", async () => {
