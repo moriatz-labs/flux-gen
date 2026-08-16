@@ -1,10 +1,11 @@
 import { confirm, input, password, select } from "@inquirer/prompts";
-import { envKeys, promptModels, VERSION } from "./constants.ts";
+import { envKeys, promptModels, providerKeyUrls, VERSION } from "./constants.ts";
 import { loadConfig, saveConfig } from "./config.ts";
 import { listImageModels } from "./deapi.ts";
 import { generateWallpaper } from "./generate.ts";
 import { getApiKey, hasApiKey, removeApiKey, setApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
+import { applyNextWallpaper, applyWallpaper, configureSlideshow } from "./slideshow.ts";
 import type { PromptModelId, ProviderId } from "./types.ts";
 
 const providers: Array<{ name: string; value: ProviderId }> = [
@@ -19,13 +20,16 @@ const help = `FluxGen — describe a wallpaper in plain English
 Usage:
   flux <description>       Generate and save a wallpaper
   flux                     Prompt for a description
+  flux setup               Set up keys, models, and the wallpaper slideshow
   flux config              View configuration and key status
   flux config key          Add, replace, or remove an API key
   flux config enhancement  Turn prompt enhancement on or off
+  flux config slideshow    Turn the wallpaper slideshow on or off
   flux prompt-model, -pm   Select the prompt model
   flux image-model, -im    Select a DEAPI image model
   flux models              List supported prompt and image models
   flux skills              List bundled and user SKILL.md packages
+  flux wallpaper next      Apply another image from Pictures/FluxGen
   flux --help, -h          Show help
   flux --version, -v       Show version`;
 
@@ -39,6 +43,7 @@ async function showConfig() {
   console.log("Flux configuration\n");
   console.log(`  Output            ${config.outputDirectory}`);
   console.log(`  Enhancement       ${config.enhancement ? "on" : "off"}`);
+  console.log(`  Slideshow         ${config.slideshow ? "on · every 30 minutes" : "off"}`);
   console.log(`  Prompt model      ${config.promptModel}`);
   console.log(`  Image model       ${config.imageModel}`);
   console.log("\nAPI keys");
@@ -62,9 +67,22 @@ async function configureKey() {
     console.log(process.env[envKeys[provider]] ? `Removed stored key. ${envKeys[provider]} is still active.` : "Stored key removed.");
     return;
   }
+  console.log(`Create or manage the key here:\n${providerKeyUrls[provider]}\n`);
   const value = await password({ message: `Paste ${providers.find((item) => item.value === provider)?.name} API key`, mask: "•" });
   await setApiKey(provider, value);
   console.log("Key saved in the operating system credential store.");
+}
+
+async function requestKey(provider: ProviderId) {
+  const label = providers.find((item) => item.value === provider)?.name ?? provider;
+  if (await hasApiKey(provider)) {
+    console.log(`${label} key already configured.`);
+    return;
+  }
+  console.log(`\nCreate your ${label} key here:\n${providerKeyUrls[provider]}\n`);
+  const value = await password({ message: `Paste ${label} API key`, mask: "•" });
+  await setApiKey(provider, value);
+  console.log(`${label} key saved securely.`);
 }
 
 async function configureEnhancement() {
@@ -72,6 +90,22 @@ async function configureEnhancement() {
   config.enhancement = await confirm({ message: "Enhance wallpaper prompts?", default: config.enhancement });
   await saveConfig(config);
   console.log(`Prompt enhancement ${config.enhancement ? "enabled" : "disabled"}.`);
+}
+
+async function setSlideshow(enabled: boolean) {
+  const config = await loadConfig();
+  await configureSlideshow(enabled);
+  config.slideshow = enabled;
+  await saveConfig(config);
+  console.log(enabled
+    ? `Wallpaper slideshow enabled. ${config.outputDirectory} rotates every 30 minutes.`
+    : "Wallpaper slideshow disabled.");
+}
+
+async function configureSlideshowPrompt() {
+  const config = await loadConfig();
+  const enabled = await confirm({ message: "Use Pictures/FluxGen as a rotating desktop slideshow?", default: config.slideshow });
+  await setSlideshow(enabled);
 }
 
 async function configurePromptModel() {
@@ -102,6 +136,45 @@ async function configureImageModel() {
   });
   await saveConfig(config);
   console.log(`Image model set to ${config.imageModel}.`);
+}
+
+async function setup() {
+  console.log("Flux setup\n");
+  await requestKey("deapi");
+
+  const config = await loadConfig();
+  config.enhancement = await confirm({ message: "Enhance prompts with an AI prompt model?", default: config.enhancement });
+  if (config.enhancement) {
+    config.promptModel = await select<PromptModelId>({
+      message: "Prompt model",
+      default: config.promptModel,
+      choices: promptModels.map((model) => ({ name: `${model.label} · ${model.provider}`, value: model.id }))
+    });
+    const promptProvider = promptModels.find((model) => model.id === config.promptModel)!.provider;
+    await requestKey(promptProvider);
+  }
+
+  try {
+    const models = await fetchModelsOrExplain();
+    if (models.length) {
+      config.imageModel = await select({
+        message: "Image model",
+        default: config.imageModel,
+        pageSize: 14,
+        choices: models.map((model) => ({ name: `${model.name} · ${model.slug}`, value: model.slug }))
+      });
+    }
+  } catch (error) {
+    console.log(`Could not load image models: ${(error as Error).message}`);
+  }
+
+  const slideshow = await confirm({ message: "Use Pictures/FluxGen as a rotating desktop slideshow?", default: config.slideshow });
+  await configureSlideshow(slideshow);
+  config.slideshow = slideshow;
+  await saveConfig(config);
+
+  console.log("\nSetup complete.");
+  console.log('Try: flux "a quiet observatory above the clouds at blue hour"');
 }
 
 async function showModels() {
@@ -144,6 +217,14 @@ async function generate(description: string) {
     }
   });
   console.log(`\nSaved ${result.path}`);
+  if (config.slideshow) {
+    try {
+      await applyWallpaper(result.path);
+      console.log("Applied as desktop wallpaper. The FluxGen folder will continue rotating.");
+    } catch (error) {
+      console.log(`Wallpaper saved, but could not be applied: ${(error as Error).message}`);
+    }
+  }
   if (config.enhancement) {
     console.log(`Skills ${result.skills.join(", ")}`);
     console.log(`Prompt ${result.prompt}`);
@@ -154,16 +235,23 @@ export async function runCli(args = Bun.argv.slice(2)) {
   const [command, subcommand] = args;
   if (command === "--help" || command === "-h" || command === "help") return console.log(help);
   if (command === "--version" || command === "-v") return console.log(VERSION);
+  if (command === "setup") return setup();
   if (command === "config") {
     if (!subcommand) return showConfig();
     if (subcommand === "key") return configureKey();
     if (subcommand === "enhancement") return configureEnhancement();
+    if (subcommand === "slideshow") return configureSlideshowPrompt();
     throw new Error(`Unknown config command: ${subcommand}`);
   }
   if (command === "prompt-model" || command === "-pm") return configurePromptModel();
   if (command === "image-model" || command === "-im") return configureImageModel();
   if (command === "models") return showModels();
   if (command === "skills") return showSkills();
+  if (command === "wallpaper" && subcommand === "next") {
+    const config = await loadConfig();
+    const path = await applyNextWallpaper(config.outputDirectory);
+    return console.log(`Applied ${path}`);
+  }
   if (!command) return generate(await input({ message: "Describe your wallpaper" }));
   return generate(args.join(" "));
 }

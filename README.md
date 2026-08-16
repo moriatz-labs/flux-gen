@@ -35,19 +35,17 @@ The installers download the latest native binary from GitHub Releases and verify
 
 ## Quick start
 
-FluxGen needs a DEAPI key to create images. Prompt enhancement also needs one key from OpenAI, Google, or Anthropic.
+After installation, run the guided setup:
 
 ```sh
-flux config key
+flux setup
 ```
 
-Choose **DEAPI**, select **Add or replace**, and paste the key at the hidden prompt. Run the command again and add the key for your preferred prompt model.
+Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, and asks whether to enable prompt enhancement and the desktop slideshow. Prompt enhancement needs one additional key from OpenAI, Google, or Anthropic.
 
-Then select models and generate:
+Then generate:
 
 ```sh
-flux -pm
-flux -im
 flux a quiet observatory above the clouds at blue hour
 ```
 
@@ -59,11 +57,11 @@ Use `flux config` to confirm the selected models, output directory, enhancement 
 
 DEAPI is always required because it renders the wallpaper.
 
-1. Sign up or sign in to DEAPI.
+1. Open the [DEAPI API Keys page](https://app.deapi.ai/settings/api-keys) and sign up or sign in.
 2. Open **Dashboard → Settings → API Keys**.
 3. Select **Create new secret key**.
 4. Confirm that the account has sufficient credits.
-5. Run `flux config key` and store the key under **DEAPI**.
+5. Run `flux setup` and paste the key at the hidden prompt.
 
 Follow the official [DEAPI quickstart](https://docs.deapi.ai/quickstart) for the current dashboard and billing flow.
 
@@ -110,14 +108,27 @@ FluxGen does not load project `.env` files. Store automation credentials in the 
 | --- | --- |
 | `flux <description>` | Generate and save a wallpaper |
 | `flux` | Open the interactive description prompt |
+| `flux setup` | Set up keys, models, and the desktop slideshow |
 | `flux config` | View nonsecret configuration and key status |
 | `flux config key` | Add, replace, or remove an API key |
 | `flux config enhancement` | Turn prompt enhancement on or off |
+| `flux config slideshow` | Turn the rotating desktop slideshow on or off |
 | `flux prompt-model`, `flux -pm` | Select the prompt model |
 | `flux image-model`, `flux -im` | Select a live DEAPI image model |
 | `flux models` | List prompt models and live DEAPI image models |
 | `flux skills` | List bundled, personal, and project skills |
+| `flux wallpaper next` | Immediately rotate to another saved Flux wallpaper |
 | `flux --help` | Show command help |
+
+## Desktop slideshow
+
+During `flux setup`, Flux can register `Pictures/FluxGen` as an opt-in slideshow that rotates every 30 minutes. Newly generated images are applied immediately.
+
+- **Windows:** a per-user scheduled task rotates the wallpaper through the native desktop API.
+- **macOS:** a per-user LaunchAgent rotates the wallpaper through System Events. macOS may ask for Automation permission the first time.
+- **Linux:** a per-user systemd timer supports GNOME, KDE Plasma, Cinnamon, MATE, and XFCE. Other desktop environments continue saving images but are not automatically changed.
+
+Run `flux config slideshow` at any time to enable or completely remove the operating-system integration.
 
 ## Wallpaper skills
 

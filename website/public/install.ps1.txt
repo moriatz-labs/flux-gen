@@ -37,6 +37,7 @@ try {
     Write-Host "Added $installDirectory to PATH. Open a new terminal to use flux."
   }
   Write-Host "Flux installed at $(Join-Path $installDirectory 'flux.exe')"
+  Write-Host "Run 'flux setup' in a new terminal to get started."
 } finally {
   $ProgressPreference = $previousProgressPreference
   if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Recurse -Force }

@@ -5,6 +5,7 @@ export type SkillSource = "bundled" | "personal" | "project";
 
 export interface FluxConfig {
   enhancement: boolean;
+  slideshow: boolean;
   promptModel: PromptModelId;
   imageModel: string;
   outputDirectory: string;
