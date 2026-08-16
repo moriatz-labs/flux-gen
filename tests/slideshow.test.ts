@@ -32,25 +32,6 @@ describe("desktop slideshow", () => {
     expect(calls.at(-1)?.[1]).toContain("bootstrap");
   });
 
-  test("writes and enables a Linux user timer", async () => {
-    temporary = await mkdtemp(join(tmpdir(), "flux-slideshow-"));
-    const calls: Array<[string, string[]]> = [];
-    const run = async (file: string, args: string[]) => { calls.push([file, args]); return { stdout: "", stderr: "" }; };
-    await configureSlideshow(true, { platform: "linux", executable: "/home/test/.local/bin/flux", main: "", configDir: temporary, home: temporary, environment: { XDG_CURRENT_DESKTOP: "GNOME" }, run });
-    const service = await readFile(join(temporary, ".config", "systemd", "user", "flux-gen-slideshow.service"), "utf8");
-    const timer = await readFile(join(temporary, ".config", "systemd", "user", "flux-gen-slideshow.timer"), "utf8");
-    expect(service).toContain("XDG_CURRENT_DESKTOP=GNOME");
-    expect(timer).toContain("OnUnitActiveSec=30min");
-    expect(calls.at(-1)?.[1]).toEqual(["--user", "enable", "--now", "flux-gen-slideshow.timer"]);
-  });
-
-  test("applies a wallpaper on GNOME", async () => {
-    const calls: Array<[string, string[]]> = [];
-    const run = async (file: string, args: string[]) => { calls.push([file, args]); return { stdout: "", stderr: "" }; };
-    await applyWallpaper("/home/test/Pictures/FluxGen/sky.png", { platform: "linux", environment: { XDG_CURRENT_DESKTOP: "GNOME" }, run });
-    expect(calls[0]).toEqual(["gsettings", ["set", "org.gnome.desktop.background", "picture-uri", "file:///home/test/Pictures/FluxGen/sky.png"]]);
-  });
-
   test("applies a Windows wallpaper without a blocking settings broadcast", async () => {
     const calls: Array<[string, string[]]> = [];
     const run = async (file: string, args: string[]) => { calls.push([file, args]); return { stdout: "", stderr: "" }; };
@@ -75,5 +56,11 @@ describe("desktop slideshow", () => {
     });
     expect(selected).toEndWith("wallpaper.webp");
     expect(calls).toContain(selected);
+  });
+
+  test("rejects unsupported operating systems", async () => {
+    temporary = await mkdtemp(join(tmpdir(), "flux-slideshow-"));
+    await expect(configureSlideshow(true, { platform: "linux", configDir: temporary })).rejects.toThrow("not supported");
+    await expect(applyWallpaper("/tmp/sky.png", { platform: "linux" })).rejects.toThrow("not supported");
   });
 });

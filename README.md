@@ -19,7 +19,7 @@ FluxGen is a small Bun-powered TypeScript CLI. It can improve your description w
 
 ## Install
 
-macOS and Linux:
+macOS:
 
 ```sh
 curl -fsSL https://flux-gen.moriatz.com/install.sh | sh
@@ -129,7 +129,6 @@ During `flux setup`, Flux offers two independent choices: apply each newly gener
 
 - **Windows:** a per-user scheduled task rotates the wallpaper through the native desktop API.
 - **macOS:** a per-user LaunchAgent rotates the wallpaper through System Events. macOS may ask for Automation permission the first time.
-- **Linux:** a per-user systemd timer supports GNOME, KDE Plasma, Cinnamon, MATE, and XFCE. Other desktop environments continue saving images but are not automatically changed.
 
 Run `flux config wallpaper` to change immediate application. Run `flux config slideshow` to enable or completely remove the background slideshow integration.
 
@@ -175,7 +174,7 @@ Regenerate the website demo video with FFmpeg available on `PATH`:
 bun run video
 ```
 
-Native Windows x64, Linux x64, macOS x64, and macOS arm64 binaries are published with SHA-256 checksums for tagged releases.
+Native Windows x64, macOS x64, and macOS arm64 binaries are published with SHA-256 checksums for tagged releases. Linux is not currently supported.
 
 ## Security
 
