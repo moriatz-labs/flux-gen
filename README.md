@@ -170,8 +170,8 @@ Project skills override personal skills, which override bundled skills with the 
 ## Troubleshooting
 
 - **DEAPI key missing:** run `flux config key` and add the DEAPI key, or configure `DEAPI_API_KEY` in your automation environment.
-- **DEAPI returns 401:** run `flux config` to see whether the active value comes from the environment or keychain, then replace the active key with `flux config key`. Setup now validates the key before reporting success.
-- **DEAPI returns 403:** verify that the key has permission to use the requested model and that the account has sufficient credits.
+- **DEAPI returns 401:** the key may have been pasted incorrectly. Flux offers to configure it again immediately, trims surrounding whitespace, and validates the replacement before accepting it. `flux config` shows whether the active value comes from the environment or keychain.
+- **DEAPI returns 403:** Flux offers the same recovery prompt. If the replacement is accepted but 403 continues, verify that the key can use the requested model and that the account has sufficient credits.
 - **Prompt-provider key missing or rejected:** Flux now continues with the original description and DEAPI. Add a valid key if you want wallpaper-skill prompt enhancement.
 - **No image models appear:** check the DEAPI key and account balance, then run `flux models` again.
 - **A key still shows as environment:** environment variables take precedence. Remove or update that variable outside FluxGen.

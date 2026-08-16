@@ -16,6 +16,6 @@ describe("HTTP errors", () => {
   test("gives specific guidance for forbidden DEAPI requests", () => {
     const message = friendlyHttpError(new HttpError(403, "https://api.deapi.ai/api/v2/models", "Forbidden"));
     expect(message).toContain("denied this request (403)");
-    expect(message).toContain("permissions and account credits");
+    expect(message).toContain("permission or credits");
   });
 });

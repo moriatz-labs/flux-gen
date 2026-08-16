@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { runGenerationLoop } from "../src/cli.ts";
+import { offerDeapiKeyRecovery, runGenerationLoop } from "../src/cli.ts";
+import { HttpError } from "../src/http.ts";
 
 describe("interactive generation", () => {
   test("offers another wallpaper after each successful generation", async () => {
@@ -24,5 +25,27 @@ describe("interactive generation", () => {
     });
     expect(generated).toEqual(["one wallpaper"]);
     expect(prompted).toBe(false);
+  });
+});
+
+describe("DEAPI key recovery", () => {
+  test("offers secure reconfiguration after an interactive auth failure", async () => {
+    let reconfigured = false;
+    const recovered = await offerDeapiKeyRecovery(
+      new HttpError(401, "https://api.deapi.ai/api/v2/models", "Unauthenticated"),
+      { interactive: true, ask: async () => true, reconfigure: async () => { reconfigured = true; }, onSuccess: () => {} }
+    );
+    expect(recovered).toBe(true);
+    expect(reconfigured).toBe(true);
+  });
+
+  test("does not prompt in automation", async () => {
+    let asked = false;
+    const recovered = await offerDeapiKeyRecovery(
+      new HttpError(403, "https://api.deapi.ai/api/v2/models", "Forbidden"),
+      { interactive: false, ask: async () => { asked = true; return true; } }
+    );
+    expect(recovered).toBe(false);
+    expect(asked).toBe(false);
   });
 });

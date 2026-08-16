@@ -3,7 +3,7 @@ import { envKeys, promptModels, providerKeyUrls, VERSION } from "./constants.ts"
 import { loadConfig, saveConfig } from "./config.ts";
 import { listImageModels } from "./deapi.ts";
 import { generateWallpaper } from "./generate.ts";
-import { isAuthenticationError } from "./http.ts";
+import { HttpError, isAuthenticationError } from "./http.ts";
 import { getApiKey, getApiKeyDetails, maskApiKey, removeApiKey, resolveApiKeyEntry, setApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
 import { applyNextWallpaper, applyWallpaper } from "./wallpaper.ts";
@@ -215,6 +215,29 @@ async function setup() {
   console.log("\nSetup complete.");
   console.log("Each newly generated image will be applied as your current wallpaper.");
   console.log('Try: flux "a quiet observatory above the clouds at blue hour"');
+}
+
+export async function offerDeapiKeyRecovery(
+  error: HttpError,
+  dependencies: {
+    interactive?: boolean;
+    ask?: () => Promise<boolean>;
+    reconfigure?: () => Promise<void>;
+    onSuccess?: () => void;
+  } = {}
+) {
+  if (!error.url.includes("deapi.ai") || !isAuthenticationError(error)) return false;
+  const interactive = dependencies.interactive ?? Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  if (!interactive) return false;
+  const retry = dependencies.ask ?? (() => confirm({ message: "Configure the DEAPI key again now?", default: true }));
+  if (!await retry()) return false;
+  const reconfigure = dependencies.reconfigure ?? (async () => {
+    await requestKey("deapi");
+    await fetchModelsOrExplain();
+  });
+  await reconfigure();
+  (dependencies.onSuccess ?? (() => console.log("DEAPI accepted the active key. Run your Flux command again.")))();
+  return true;
 }
 
 function printUpdateResult(update: Awaited<ReturnType<typeof updateNow>>) {

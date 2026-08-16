@@ -1,7 +1,7 @@
 import type { PromptModelId, ProviderId } from "./types.ts";
 
 export const APP_NAME = "FluxGen";
-export const VERSION = "0.7.0";
+export const VERSION = "0.7.1";
 export const DEFAULT_IMAGE_MODEL = "Flux_2_Klein_4B_BF16";
 
 export const promptModels: Array<{
