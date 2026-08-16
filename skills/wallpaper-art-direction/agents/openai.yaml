@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wallpaper Art Direction"
+  short_description: "Compose vivid, tactile desktop wallpapers"
+  default_prompt: "Use $wallpaper-art-direction to turn my idea into a vivid, desktop-safe wallpaper prompt."

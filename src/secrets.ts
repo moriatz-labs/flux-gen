@@ -11,6 +11,18 @@ function isMissingCredential(error: unknown) {
   return message.includes("no entry") || message.includes("not found") || message.includes("element not found");
 }
 
+export function maskApiKey(value: string) {
+  const firstCharacter = [...value.trim()][0];
+  return firstCharacter ? `[${firstCharacter}${"*".repeat(16)}]` : "[*****************]";
+}
+
+export function resolveApiKeyEntry(current: string | null, entry: string) {
+  const normalized = entry.trim();
+  if (normalized) return { action: "replace" as const, value: normalized };
+  if (current) return { action: "keep" as const };
+  throw new Error("API key cannot be empty.");
+}
+
 export async function getApiKey(provider: ProviderId) {
   const environmentValue = process.env[envKeys[provider]]?.trim();
   if (environmentValue) return environmentValue;

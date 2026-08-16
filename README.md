@@ -133,7 +133,7 @@ Flux does not create a scheduled task or background process. Run `flux config wa
 
 ## Wallpaper skills
 
-FluxGen bundles eight focused skills for composition, lighting, photography, illustration, abstraction, environments, and color direction. The foundation skill is always active when enhancement is enabled.
+FluxGen bundles nine focused skills for composition, lighting, photography, illustration, abstraction, environments, color direction, and vivid tactile art direction. The foundation and art-direction skills are always active when enhancement is enabled.
 
 Add your own skills at:
 

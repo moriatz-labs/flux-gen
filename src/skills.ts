@@ -18,10 +18,12 @@ import abstract from "../skills/abstract-wallpaper/SKILL.md" with { type: "text"
 import environment from "../skills/environment-wallpaper/SKILL.md" with { type: "text" };
 // @ts-expect-error Bun text import
 import color from "../skills/color-direction/SKILL.md" with { type: "text" };
+// @ts-expect-error Bun text import
+import artDirection from "../skills/wallpaper-art-direction/SKILL.md" with { type: "text" };
 import { personalSkillsDirectory, projectSkillsDirectory } from "./paths.ts";
 import type { SkillCatalogue, SkillSource, WallpaperSkill } from "./types.ts";
 
-const bundledSources = [foundation, composition, lighting, photography, illustration, abstract, environment, color];
+const bundledSources = [foundation, composition, lighting, photography, illustration, abstract, environment, color, artDirection];
 
 export function parseSkill(source: string, origin: SkillSource, path?: string): WallpaperSkill {
   const match = source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/);

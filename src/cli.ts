@@ -3,7 +3,7 @@ import { envKeys, promptModels, providerKeyUrls, VERSION } from "./constants.ts"
 import { loadConfig, saveConfig } from "./config.ts";
 import { listImageModels } from "./deapi.ts";
 import { generateWallpaper } from "./generate.ts";
-import { getApiKey, hasApiKey, removeApiKey, setApiKey } from "./secrets.ts";
+import { getApiKey, maskApiKey, removeApiKey, resolveApiKeyEntry, setApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
 import { applyNextWallpaper, applyWallpaper } from "./wallpaper.ts";
 import type { PromptModelId, ProviderId } from "./types.ts";
@@ -34,7 +34,10 @@ Usage:
   flux --version, -v       Show version`;
 
 async function safeKeyStatus(provider: ProviderId) {
-  try { return await hasApiKey(provider) ? "configured" : "missing"; }
+  try {
+    const key = await getApiKey(provider);
+    return key ? `configured ${maskApiKey(key)}` : "missing";
+  }
   catch { return "keychain unavailable"; }
 }
 
@@ -48,7 +51,8 @@ async function showConfig() {
   console.log(`  Image model       ${config.imageModel}`);
   console.log("\nAPI keys");
   for (const provider of providers) {
-    const source = process.env[envKeys[provider.value]] ? "environment" : await safeKeyStatus(provider.value);
+    const status = await safeKeyStatus(provider.value);
+    const source = process.env[envKeys[provider.value]] ? status.replace("configured", "environment") : status;
     console.log(`  ${provider.name.padEnd(18)} ${source}`);
   }
 }
@@ -67,21 +71,33 @@ async function configureKey() {
     console.log(process.env[envKeys[provider]] ? `Removed stored key. ${envKeys[provider]} is still active.` : "Stored key removed.");
     return;
   }
-  console.log(`Create or manage the key here:\n${providerKeyUrls[provider]}\n`);
-  const value = await password({ message: `Paste ${providers.find((item) => item.value === provider)?.name} API key`, mask: "•" });
-  await setApiKey(provider, value);
-  console.log("Key saved in the operating system credential store.");
+  await requestKey(provider);
 }
 
 async function requestKey(provider: ProviderId) {
   const label = providers.find((item) => item.value === provider)?.name ?? provider;
-  if (await hasApiKey(provider)) {
-    console.log(`${label} key already configured.`);
+  const current = await getApiKey(provider);
+  const environmentKey = process.env[envKeys[provider]]?.trim();
+  console.log(`\nCreate or manage your ${label} key here:\n${providerKeyUrls[provider]}\n`);
+  if (current) {
+    console.log(`Current ${label} key ${maskApiKey(current)}${environmentKey ? ` · from ${envKeys[provider]}` : ""}`);
+    if (environmentKey) console.log(`A stored replacement will become active after ${envKeys[provider]} is removed.`);
+    const replacement = await password({ message: `Paste a new ${label} API key, or press Enter to keep the current key`, mask: "•" });
+    const update = resolveApiKeyEntry(current, replacement);
+    if (update.action === "keep") {
+      console.log(`Keeping the existing ${label} key.`);
+      return;
+    }
+    await setApiKey(provider, update.value);
+    console.log(environmentKey
+      ? `${label} key saved securely. ${envKeys[provider]} remains active.`
+      : `${label} key replaced securely.`);
     return;
   }
-  console.log(`\nCreate your ${label} key here:\n${providerKeyUrls[provider]}\n`);
   const value = await password({ message: `Paste ${label} API key`, mask: "•" });
-  await setApiKey(provider, value);
+  const update = resolveApiKeyEntry(null, value);
+  if (update.action !== "replace") throw new Error("API key cannot be empty.");
+  await setApiKey(provider, update.value);
   console.log(`${label} key saved securely.`);
 }
 
