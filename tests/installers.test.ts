@@ -15,6 +15,9 @@ describe("installers", () => {
     expect(source).toContain('"Path", "User"');
     expect(source).toContain("[string]::IsNullOrWhiteSpace($userPath)");
     expect(source).toContain("[Environment]::Is64BitOperatingSystem");
+    expect(source).toContain('$ProgressPreference = "SilentlyContinue"');
+    expect(source).toContain('$ProgressPreference = $previousProgressPreference');
+    expect(source).toContain('Write-Host "Downloading Flux for Windows..."');
     expect(source).not.toContain("RuntimeInformation");
     expect(textEndpoint.replaceAll("\r\n", "\n")).toBe(source.replaceAll("\r\n", "\n"));
   });
