@@ -1,3 +1,18 @@
+export class HttpError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly url: string,
+    message: string
+  ) {
+    super(message);
+    this.name = "HttpError";
+  }
+}
+
+export function isAuthenticationError(error: unknown): error is HttpError {
+  return error instanceof HttpError && (error.status === 401 || error.status === 403);
+}
+
 export async function fetchJson<T>(
   url: string,
   init: RequestInit = {},
@@ -13,7 +28,7 @@ export async function fetchJson<T>(
     const message = typeof (payload as { message?: unknown }).message === "string"
       ? (payload as { message: string }).message
       : response.statusText;
-    throw new Error(`API request failed (${response.status}): ${message}`);
+    throw new HttpError(response.status, url, message);
   }
   return payload as T;
 }

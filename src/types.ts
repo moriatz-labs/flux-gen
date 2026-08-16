@@ -2,6 +2,7 @@ export const promptModelIds = ["gpt-5.6-luna", "gemini-3.6-flash", "claude-sonne
 export type PromptModelId = (typeof promptModelIds)[number];
 export type ProviderId = "deapi" | "openai" | "google" | "anthropic";
 export type SkillSource = "bundled" | "personal" | "project";
+export type UpdateMode = "off" | "notify" | "automatic";
 
 export interface FluxConfig {
   enhancement: boolean;
@@ -9,6 +10,8 @@ export interface FluxConfig {
   promptModel: PromptModelId;
   imageModel: string;
   outputDirectory: string;
+  updateMode: UpdateMode;
+  lastUpdateCheck?: string;
 }
 
 export interface WallpaperSkill {

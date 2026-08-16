@@ -24,10 +24,23 @@ export function resolveApiKeyEntry(current: string | null, entry: string) {
 }
 
 export async function getApiKey(provider: ProviderId) {
+  return (await getApiKeyDetails(provider)).value;
+}
+
+export async function getApiKeyDetails(provider: ProviderId): Promise<{
+  value: string | null;
+  source: "environment" | "keychain" | "missing";
+}> {
   const environmentValue = process.env[envKeys[provider]]?.trim();
-  if (environmentValue) return environmentValue;
-  try { return (await entry(provider).getPassword()) ?? null; }
-  catch (error) { if (isMissingCredential(error)) return null; throw error; }
+  if (environmentValue) return { value: environmentValue, source: "environment" };
+  try {
+    const value = (await entry(provider).getPassword())?.trim() || null;
+    return { value, source: value ? "keychain" : "missing" };
+  }
+  catch (error) {
+    if (isMissingCredential(error)) return { value: null, source: "missing" };
+    throw error;
+  }
 }
 
 export async function hasApiKey(provider: ProviderId) { return Boolean(await getApiKey(provider)); }

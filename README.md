@@ -13,7 +13,7 @@
   <a href="#commands">Commands</a>
 </p>
 
-FluxGen is a small Bun-powered TypeScript CLI. It can improve your description with focused wallpaper skills, render the image through DEAPI, and save the result to your operating system's `Pictures/FluxGen` directory.
+FluxGen is a small Bun-powered TypeScript CLI. It can improve your description with focused wallpaper skills, render the image through DEAPI, save it to your operating system's `Pictures/FluxGen` directory, and immediately set it as your wallpaper.
 
 ![An aurora wallpaper generated with FluxGen](website/public/wallpapers/aurora-borealis.webp)
 
@@ -41,7 +41,7 @@ After installation, run the guided setup:
 flux setup
 ```
 
-Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, and applies each newly generated image as your current wallpaper. Prompt enhancement needs one additional key from OpenAI, Google, or Anthropic.
+Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, validates it with DEAPI, and applies each newly generated image as your current wallpaper. Prompt enhancement can use one additional key from OpenAI, Google, or Anthropic. If that provider key is missing or rejected, Flux sends your original description directly to DEAPI instead of blocking generation.
 
 Then generate:
 
@@ -51,7 +51,7 @@ flux a quiet observatory above the clouds at blue hour
 
 After saving a wallpaper in an interactive terminal, Flux asks whether you want to create another. Choose **Yes** to enter the next description without restarting the command, or **No** to exit. Redirected and automated commands always generate once and exit.
 
-Use `flux config` to confirm the selected models, output directory, enhancement setting, and masked key status.
+Use `flux config` to confirm the selected models, output directory, enhancement setting, update mode, masked key status, and whether each active key comes from the environment or operating-system keychain.
 
 ## API key setup
 
@@ -67,9 +67,9 @@ DEAPI is always required because it renders the wallpaper.
 
 Follow the official [DEAPI quickstart](https://docs.deapi.ai/quickstart) for the current dashboard and billing flow.
 
-### 2. Choose one prompt provider
+### 2. Optionally choose a prompt provider
 
-Prompt enhancement is enabled by default. You need only the key belonging to the prompt model you select.
+Prompt enhancement is enabled by default, but its provider key is optional. Add only the key belonging to the prompt model you select. If it is missing or rejected, Flux safely uses your original description with DEAPI.
 
 | Provider | How to create the key | Store it under |
 | --- | --- | --- |
@@ -104,6 +104,28 @@ For automation or CI, these environment variables override keys stored in the op
 
 FluxGen does not load project `.env` files. Store automation credentials in the secret manager provided by your CI or operating system. Never put a real key in source code, commits, issues, screenshots, command examples, or shell history.
 
+## Updates
+
+Check for a newer release without changing anything:
+
+```sh
+flux update --check
+```
+
+Download, checksum-verify, and install the latest release:
+
+```sh
+flux update
+```
+
+Choose automatic installation, notification-only checks, or disable update checks:
+
+```sh
+flux config updates
+```
+
+Update checks run at most once every 24 hours. Automatic updates use the same public, checksum-verifying installers as first-time installation. Windows finishes replacing the executable after the current Flux command exits; macOS updates it immediately.
+
 ## Commands
 
 | Command | Purpose |
@@ -115,11 +137,14 @@ FluxGen does not load project `.env` files. Store automation credentials in the 
 | `flux config key` | Add, replace, or remove an API key |
 | `flux config enhancement` | Turn prompt enhancement on or off |
 | `flux config wallpaper` | Apply new wallpapers immediately or save them only |
+| `flux config updates` | Choose automatic, notification-only, or disabled update checks |
 | `flux prompt-model`, `flux -pm` | Select the prompt model |
 | `flux image-model`, `flux -im` | Select a live DEAPI image model |
 | `flux models` | List prompt models and live DEAPI image models |
 | `flux skills` | List bundled, personal, and project skills |
 | `flux wallpaper next` | Immediately rotate to another saved Flux wallpaper |
+| `flux update --check` | Check for a newer release |
+| `flux update` | Install the latest checksum-verified release |
 | `flux --help` | Show command help |
 
 ## Desktop wallpaper
@@ -145,7 +170,9 @@ Project skills override personal skills, which override bundled skills with the 
 ## Troubleshooting
 
 - **DEAPI key missing:** run `flux config key` and add the DEAPI key, or configure `DEAPI_API_KEY` in your automation environment.
-- **Prompt-provider key missing:** add the key for the model selected by `flux -pm`, select a different model, or disable enhancement.
+- **DEAPI returns 401:** run `flux config` to see whether the active value comes from the environment or keychain, then replace the active key with `flux config key`. Setup now validates the key before reporting success.
+- **DEAPI returns 403:** verify that the key has permission to use the requested model and that the account has sufficient credits.
+- **Prompt-provider key missing or rejected:** Flux now continues with the original description and DEAPI. Add a valid key if you want wallpaper-skill prompt enhancement.
 - **No image models appear:** check the DEAPI key and account balance, then run `flux models` again.
 - **A key still shows as environment:** environment variables take precedence. Remove or update that variable outside FluxGen.
 - **Command not found after installation:** open a new terminal so the installer's PATH update is loaded.

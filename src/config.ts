@@ -2,10 +2,12 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { DEFAULT_IMAGE_MODEL } from "./constants.ts";
 import { configDirectory, defaultOutputDirectory } from "./paths.ts";
-import { promptModelIds, type FluxConfig } from "./types.ts";
+import { promptModelIds, type FluxConfig, type UpdateMode } from "./types.ts";
+
+const updateModes: UpdateMode[] = ["off", "notify", "automatic"];
 
 export function defaultConfig(): FluxConfig {
-  return { enhancement: true, applyWallpaper: true, promptModel: "gpt-5.6-luna", imageModel: DEFAULT_IMAGE_MODEL, outputDirectory: defaultOutputDirectory() };
+  return { enhancement: true, applyWallpaper: true, promptModel: "gpt-5.6-luna", imageModel: DEFAULT_IMAGE_MODEL, outputDirectory: defaultOutputDirectory(), updateMode: "notify" };
 }
 
 export function configPath() { return join(configDirectory(), "config.json"); }
@@ -21,7 +23,9 @@ export async function loadConfig(path = configPath()): Promise<FluxConfig> {
         ? parsed.promptModel as FluxConfig["promptModel"]
         : defaults.promptModel,
       imageModel: typeof parsed.imageModel === "string" && parsed.imageModel.trim() ? parsed.imageModel : defaults.imageModel,
-      outputDirectory: typeof parsed.outputDirectory === "string" && parsed.outputDirectory.trim() ? parsed.outputDirectory : defaults.outputDirectory
+      outputDirectory: typeof parsed.outputDirectory === "string" && parsed.outputDirectory.trim() ? parsed.outputDirectory : defaults.outputDirectory,
+      updateMode: updateModes.includes(parsed.updateMode as UpdateMode) ? parsed.updateMode as UpdateMode : defaults.updateMode,
+      lastUpdateCheck: typeof parsed.lastUpdateCheck === "string" ? parsed.lastUpdateCheck : undefined
     };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return defaults;

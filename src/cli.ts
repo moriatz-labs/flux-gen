@@ -3,10 +3,12 @@ import { envKeys, promptModels, providerKeyUrls, VERSION } from "./constants.ts"
 import { loadConfig, saveConfig } from "./config.ts";
 import { listImageModels } from "./deapi.ts";
 import { generateWallpaper } from "./generate.ts";
-import { getApiKey, maskApiKey, removeApiKey, resolveApiKeyEntry, setApiKey } from "./secrets.ts";
+import { isAuthenticationError } from "./http.ts";
+import { getApiKey, getApiKeyDetails, maskApiKey, removeApiKey, resolveApiKeyEntry, setApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
 import { applyNextWallpaper, applyWallpaper } from "./wallpaper.ts";
-import type { PromptModelId, ProviderId } from "./types.ts";
+import { checkForUpdate, maybeCheckForUpdates, updateNow } from "./update.ts";
+import type { DeapiModel, PromptModelId, ProviderId, UpdateMode } from "./types.ts";
 
 const providers: Array<{ name: string; value: ProviderId }> = [
   { name: "DEAPI", value: "deapi" },
@@ -25,18 +27,21 @@ Usage:
   flux config key          Add, replace, or remove an API key
   flux config enhancement  Turn prompt enhancement on or off
   flux config wallpaper    Apply new wallpapers automatically or save only
+  flux config updates      Choose automatic, notification-only, or no update checks
   flux prompt-model, -pm   Select the prompt model
   flux image-model, -im    Select a DEAPI image model
   flux models              List supported prompt and image models
   flux skills              List bundled and user SKILL.md packages
   flux wallpaper next      Apply another image from Pictures/FluxGen
+  flux update --check      Check whether a newer Flux release is available
+  flux update              Download and securely install the latest release
   flux --help, -h          Show help
   flux --version, -v       Show version`;
 
 async function safeKeyStatus(provider: ProviderId) {
   try {
-    const key = await getApiKey(provider);
-    return key ? `configured ${maskApiKey(key)}` : "missing";
+    const key = await getApiKeyDetails(provider);
+    return key.value ? `configured ${maskApiKey(key.value)} · ${key.source}` : "missing";
   }
   catch { return "keychain unavailable"; }
 }
@@ -49,11 +54,11 @@ async function showConfig() {
   console.log(`  Apply wallpaper   ${config.applyWallpaper ? "on" : "off"}`);
   console.log(`  Prompt model      ${config.promptModel}`);
   console.log(`  Image model       ${config.imageModel}`);
+  console.log(`  Updates           ${config.updateMode}`);
   console.log("\nAPI keys");
   for (const provider of providers) {
     const status = await safeKeyStatus(provider.value);
-    const source = process.env[envKeys[provider.value]] ? status.replace("configured", "environment") : status;
-    console.log(`  ${provider.name.padEnd(18)} ${source}`);
+    console.log(`  ${provider.name.padEnd(18)} ${status}`);
   }
 }
 
@@ -72,15 +77,20 @@ async function configureKey() {
     return;
   }
   await requestKey(provider);
+  if (provider === "deapi") {
+    await fetchModelsOrExplain();
+    console.log("DEAPI accepted the active key.");
+  }
 }
 
 async function requestKey(provider: ProviderId) {
   const label = providers.find((item) => item.value === provider)?.name ?? provider;
-  const current = await getApiKey(provider);
-  const environmentKey = process.env[envKeys[provider]]?.trim();
+  const details = await getApiKeyDetails(provider);
+  const current = details.value;
+  const environmentKey = details.source === "environment";
   console.log(`\nCreate or manage your ${label} key here:\n${providerKeyUrls[provider]}\n`);
   if (current) {
-    console.log(`Current ${label} key ${maskApiKey(current)}${environmentKey ? ` · from ${envKeys[provider]}` : ""}`);
+    console.log(`Current ${label} key ${maskApiKey(current)} · from ${environmentKey ? envKeys[provider] : "the system keychain"}`);
     if (environmentKey) console.log(`A stored replacement will become active after ${envKeys[provider]} is removed.`);
     const replacement = await password({ message: `Paste a new ${label} API key, or press Enter to keep the current key`, mask: "•" });
     const update = resolveApiKeyEntry(current, replacement);
@@ -113,6 +123,22 @@ async function configureWallpaperPrompt() {
   config.applyWallpaper = await confirm({ message: "Apply each newly generated wallpaper immediately?", default: config.applyWallpaper });
   await saveConfig(config);
   console.log(config.applyWallpaper ? "New wallpapers will be applied immediately." : "New wallpapers will only be saved.");
+}
+
+async function configureUpdates() {
+  const config = await loadConfig();
+  config.updateMode = await select<UpdateMode>({
+    message: "Flux updates",
+    default: config.updateMode,
+    choices: [
+      { name: "Install automatically", value: "automatic" },
+      { name: "Tell me when an update is available", value: "notify" },
+      { name: "Do not check", value: "off" }
+    ]
+  });
+  config.lastUpdateCheck = undefined;
+  await saveConfig(config);
+  console.log(`Updates set to ${config.updateMode}.`);
 }
 
 async function configurePromptModel() {
@@ -149,6 +175,16 @@ async function setup() {
   console.log("Flux setup\n");
   await requestKey("deapi");
 
+  let models: DeapiModel[];
+  try {
+    models = await fetchModelsOrExplain();
+    console.log("DEAPI accepted the active key.\n");
+  } catch (error) {
+    if (isAuthenticationError(error)) throw error;
+    console.log(`Could not load image models: ${(error as Error).message}`);
+    models = [];
+  }
+
   const config = await loadConfig();
   config.enhancement = await confirm({ message: "Enhance prompts with an AI prompt model?", default: config.enhancement });
   if (config.enhancement) {
@@ -161,26 +197,59 @@ async function setup() {
     await requestKey(promptProvider);
   }
 
-  try {
-    const models = await fetchModelsOrExplain();
-    if (models.length) {
-      config.imageModel = await select({
-        message: "Image model",
-        default: config.imageModel,
-        pageSize: 14,
-        choices: models.map((model) => ({ name: `${model.name} · ${model.slug}`, value: model.slug }))
-      });
-    }
-  } catch (error) {
-    console.log(`Could not load image models: ${(error as Error).message}`);
+  if (models.length) {
+    config.imageModel = await select({
+      message: "Image model",
+      default: config.imageModel,
+      pageSize: 14,
+      choices: models.map((model) => ({ name: `${model.name} · ${model.slug}`, value: model.slug }))
+    });
   }
 
   config.applyWallpaper = true;
+  const automaticUpdates = await confirm({ message: "Keep Flux automatically updated?", default: config.updateMode === "automatic" });
+  config.updateMode = automaticUpdates ? "automatic" : "notify";
+  config.lastUpdateCheck = undefined;
   await saveConfig(config);
 
   console.log("\nSetup complete.");
   console.log("Each newly generated image will be applied as your current wallpaper.");
   console.log('Try: flux "a quiet observatory above the clouds at blue hour"');
+}
+
+function printUpdateResult(update: Awaited<ReturnType<typeof updateNow>>) {
+  if (!update.available || update.result === "current") {
+    console.log(`Flux ${update.current} is up to date.`);
+    return;
+  }
+  if (update.result === "staged") {
+    console.log(`Flux ${update.latest} will finish installing after this command closes.`);
+    return;
+  }
+  console.log(`Flux updated from ${update.current} to ${update.latest}.`);
+}
+
+async function updateCommand(checkOnly: boolean) {
+  if (checkOnly) {
+    const update = await checkForUpdate();
+    console.log(update.available
+      ? `Flux ${update.latest} is available. You have ${update.current}. Run \`flux update\` to install it.`
+      : `Flux ${update.current} is up to date.`);
+    return;
+  }
+  printUpdateResult(await updateNow());
+}
+
+async function handleConfiguredUpdates() {
+  const update = await maybeCheckForUpdates();
+  if (!update) return;
+  if (update.result === "notify") {
+    console.log(`Flux ${update.latest} is available. Run \`flux update\` to install it.\n`);
+  } else if (update.result === "staged") {
+    console.log(`Flux ${update.latest} will finish installing after this command closes.\n`);
+  } else {
+    console.log(`Flux automatically updated to ${update.latest}.\n`);
+  }
 }
 
 async function showModels() {
@@ -214,6 +283,7 @@ async function generate(description: string) {
   let lastProgress = -1;
   const result = await generateWallpaper(description.trim(), config, {
     onPhase: (message) => console.log(`  ${message}`),
+    onNotice: (message) => console.log(`  ${message}`),
     onProgress: (progress) => {
       const rounded = typeof progress === "number" ? Math.floor(progress) : -1;
       if (rounded >= 0 && rounded !== lastProgress) {
@@ -231,7 +301,7 @@ async function generate(description: string) {
       console.log(`Wallpaper saved, but could not be applied: ${(error as Error).message}`);
     }
   }
-  if (config.enhancement) {
+  if (result.enhanced) {
     console.log(`Skills ${result.skills.join(", ")}`);
     console.log(`Prompt ${result.prompt}`);
   }
@@ -262,12 +332,15 @@ export async function runCli(args = Bun.argv.slice(2)) {
   const [command, subcommand] = args;
   if (command === "--help" || command === "-h" || command === "help") return console.log(help);
   if (command === "--version" || command === "-v") return console.log(VERSION);
+  if (command === "update") return updateCommand(subcommand === "--check" || subcommand === "check");
+  await handleConfiguredUpdates();
   if (command === "setup") return setup();
   if (command === "config") {
     if (!subcommand) return showConfig();
     if (subcommand === "key") return configureKey();
     if (subcommand === "enhancement") return configureEnhancement();
     if (subcommand === "wallpaper") return configureWallpaperPrompt();
+    if (subcommand === "updates") return configureUpdates();
     throw new Error(`Unknown config command: ${subcommand}`);
   }
   if (command === "prompt-model" || command === "-pm") return configurePromptModel();

@@ -89,7 +89,7 @@
           </li>
           <li>
             <span class="step-number" aria-hidden="true">02</span>
-            <div><h3>Run the guided setup</h3><p>Flux opens the right key pages, masks what you paste, stores keys in your operating system credential store, and lets you choose both models.</p></div>
+            <div><h3>Run the guided setup</h3><p>Flux opens the right key pages, stores and validates what you paste, lets you choose both models, and can keep itself updated.</p></div>
             <code>flux setup</code>
           </li>
           <li>
@@ -98,7 +98,7 @@
             <code>flux "a quiet blue-hour coast"</code>
           </li>
         </ol>
-        <p class="onboarding-note">Want to skip prompt enhancement? Run <code>flux config enhancement</code> and choose <strong>No</strong>. Then only a DEAPI key is required.</p>
+        <p class="onboarding-note">A prompt-provider key is optional. Without one, Flux sends your sentence directly to DEAPI. Run <code>flux config enhancement</code> to control enhancement.</p>
 
         <div class="docs-grid">
           <article>
@@ -120,6 +120,8 @@
               <div><dt><code>flux config key</code></dt><dd>Add, replace, or remove a key.</dd></div>
               <div><dt><code>flux -pm</code></dt><dd>Choose the prompt model.</dd></div>
               <div><dt><code>flux -im</code></dt><dd>Choose the DEAPI image model.</dd></div>
+              <div><dt><code>flux update</code></dt><dd>Install the latest verified release.</dd></div>
+              <div><dt><code>flux config updates</code></dt><dd>Choose automatic updates or notifications.</dd></div>
             </dl>
           </article>
         </div>
