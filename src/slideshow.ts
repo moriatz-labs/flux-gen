@@ -120,8 +120,10 @@ export async function applyWallpaper(path: string, runtime: SlideshowRuntime = {
   const platform = runtime.platform ?? process.platform;
   const run = runner(runtime);
   if (platform === "win32") {
-    const script = `Add-Type @'\nusing System.Runtime.InteropServices;\npublic class FluxWallpaper { [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool SystemParametersInfo(int action, int param, string path, int flags); }\n'@\nif (-not [FluxWallpaper]::SystemParametersInfo(20, 0, $args[0], 1)) { throw "Windows could not set the wallpaper." }`;
-    await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script, path]);
+    const encodedPath = Buffer.from(path, "utf8").toString("base64");
+    const script = `$wallpaperPath = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedPath}'))\nAdd-Type @'\nusing System.Runtime.InteropServices;\npublic class FluxWallpaper { [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool SystemParametersInfo(int action, int param, string path, int flags); }\n'@\nif (-not [FluxWallpaper]::SystemParametersInfo(20, 0, $wallpaperPath, 1)) { throw "Windows could not set the wallpaper." }`;
+    const encodedCommand = Buffer.from(script, "utf16le").toString("base64");
+    await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", encodedCommand]);
     return;
   }
   if (platform === "darwin") {
