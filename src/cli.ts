@@ -243,6 +243,27 @@ async function generate(description: string) {
   }
 }
 
+export async function runGenerationLoop(
+  initialDescription: string,
+  dependencies: {
+    generate?: (description: string) => Promise<void>;
+    askAgain?: () => Promise<boolean>;
+    askDescription?: () => Promise<string>;
+    interactive?: boolean;
+  } = {}
+) {
+  const create = dependencies.generate ?? generate;
+  const askAgain = dependencies.askAgain ?? (() => confirm({ message: "Create another wallpaper?", default: true }));
+  const askDescription = dependencies.askDescription ?? (() => input({ message: "Describe your next wallpaper" }));
+  const interactive = dependencies.interactive ?? Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  let description = initialDescription;
+  while (true) {
+    await create(description);
+    if (!interactive || !await askAgain()) return;
+    description = await askDescription();
+  }
+}
+
 export async function runCli(args = Bun.argv.slice(2)) {
   const [command, subcommand] = args;
   if (command === "--help" || command === "-h" || command === "help") return console.log(help);
@@ -265,6 +286,6 @@ export async function runCli(args = Bun.argv.slice(2)) {
     const path = await applyNextWallpaper(config.outputDirectory);
     return console.log(`Applied ${path}`);
   }
-  if (!command) return generate(await input({ message: "Describe your wallpaper" }));
-  return generate(args.join(" "));
+  if (!command) return runGenerationLoop(await input({ message: "Describe your wallpaper" }));
+  return runGenerationLoop(args.join(" "));
 }

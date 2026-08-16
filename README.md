@@ -49,6 +49,8 @@ Then generate:
 flux a quiet observatory above the clouds at blue hour
 ```
 
+After saving a wallpaper in an interactive terminal, Flux asks whether you want to create another. Choose **Yes** to enter the next description without restarting the command, or **No** to exit. Redirected and automated commands always generate once and exit.
+
 Use `flux config` to confirm the selected models, output directory, enhancement setting, and masked key status.
 
 ## API key setup
