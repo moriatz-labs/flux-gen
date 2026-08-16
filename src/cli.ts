@@ -310,11 +310,12 @@ async function showSkills() {
 }
 
 async function collectOfflineWallpaperDirection(): Promise<OfflineWallpaperDirection> {
-  console.log("\nNo prompt-model key is active. A few visual choices will help Flux direct the wallpaper locally.\n");
-  const style = await select({ message: "What should it look like?", choices: styleChoices });
-  const lighting = await select({ message: "What sort of lighting?", choices: lightingChoices });
-  const composition = await select({ message: "How should the scene be composed?", choices: compositionChoices });
-  const palette = await select({ message: "What color mood?", choices: paletteChoices });
+  console.log("\nNo prompt-model key is active. A few visual choices will help Flux direct the wallpaper locally.");
+  console.log("Press Enter on any question to keep Auto and let Flux decide.\n");
+  const style = await select({ message: "What should it look like?", default: "auto", choices: styleChoices });
+  const lighting = await select({ message: "What sort of lighting?", default: "auto", choices: lightingChoices });
+  const composition = await select({ message: "How should the scene be composed?", default: "auto", choices: compositionChoices });
+  const palette = await select({ message: "What color mood?", default: "auto", choices: paletteChoices });
   return { style, lighting, composition, palette };
 }
 

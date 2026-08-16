@@ -78,7 +78,7 @@ Without a prompt-model key, an interactive generation asks four quick visual que
 3. Composition — centered, off-center, minimal, or layered panorama.
 4. Color mood — warm, cool, dark, vibrant, or earthy.
 
-Every question includes an **Auto** choice. Automated and redirected commands skip the questions and infer these decisions from the original sentence. In both cases Flux adds a full-bleed 16:9 composition, desktop-safe calm edges, atmospheric depth, controlled color, tactile detail, and a clean image-only field before sending the prompt to DEAPI.
+Every question defaults to **Auto**. Press Enter to skip any individual question and let Flux infer that answer. Automated and redirected commands skip all four questions and infer these decisions from the original sentence. In both cases Flux adds a full-bleed 16:9 composition, desktop-safe calm edges, atmospheric depth, controlled color, tactile detail, and a clean image-only field before sending the prompt to DEAPI.
 
 | Provider | How to create the key | Store it under |
 | --- | --- | --- |

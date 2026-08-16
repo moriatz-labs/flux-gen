@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { buildOfflineWallpaperPrompt } from "../src/offline-prompt.ts";
+import { buildOfflineWallpaperPrompt, compositionChoices, lightingChoices, paletteChoices, styleChoices } from "../src/offline-prompt.ts";
 
 describe("offline wallpaper direction", () => {
+  test("defaults every guided question to Auto so Enter can skip it", () => {
+    expect([styleChoices, lightingChoices, compositionChoices, paletteChoices].every((choices) => choices[0]?.value === "auto")).toBe(true);
+  });
+
   test("adds universal wallpaper composition and image-only constraints", () => {
     const prompt = buildOfflineWallpaperPrompt("a lighthouse in fog");
     expect(prompt).toContain("a lighthouse in fog");
