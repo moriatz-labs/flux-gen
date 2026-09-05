@@ -37,8 +37,8 @@ export async function generateWallpaper(
   let selectedSkills: string[] = [];
   if (config.enhancement) {
     const promptProvider = providerForModel(config.promptModel);
-    const promptKey = await readKey(promptProvider);
-    if (!promptKey) {
+    const promptKey = promptProvider === "local" ? "" : await readKey(promptProvider);
+    if (promptProvider !== "local" && !promptKey) {
       finalPrompt = buildOfflineWallpaperPrompt(request, callbacks.offlineDirection);
       selectedSkills = ["wallpaper-foundation", "wallpaper-art-direction"];
       callbacks.onNotice?.(`No ${promptProvider} key is configured. Using Flux's built-in wallpaper direction before DEAPI.`);
@@ -46,11 +46,11 @@ export async function generateWallpaper(
       callbacks.onPhase?.(`Enhancing with ${config.promptModel}…`);
       try {
         const catalogue = await loadSkills();
-        const enhanced = await improvePrompt({ request, model: config.promptModel, apiKey: promptKey, skills: catalogue.skills });
+        const enhanced = await improvePrompt({ request, model: config.promptModel, apiKey: promptKey ?? "", skills: catalogue.skills });
         finalPrompt = enhanced.prompt;
         selectedSkills = enhanced.skills;
       } catch (error) {
-        if (!isAuthenticationError(error)) throw error;
+        if (promptProvider === "local" || !isAuthenticationError(error)) throw error;
         finalPrompt = buildOfflineWallpaperPrompt(request, callbacks.offlineDirection);
         selectedSkills = ["wallpaper-foundation", "wallpaper-art-direction"];
         callbacks.onNotice?.(`${config.promptModel} rejected its API key (${error.status}). Using Flux's built-in wallpaper direction before DEAPI.`);

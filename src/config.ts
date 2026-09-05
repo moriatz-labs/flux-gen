@@ -7,7 +7,7 @@ import { promptModelIds, type FluxConfig, type UpdateMode } from "./types.ts";
 const updateModes: UpdateMode[] = ["off", "notify", "automatic"];
 
 export function defaultConfig(): FluxConfig {
-  return { enhancement: true, applyWallpaper: true, promptModel: "gpt-5.6-luna", imageModel: DEFAULT_IMAGE_MODEL, outputDirectory: defaultOutputDirectory(), updateMode: "notify" };
+  return { enhancement: true, applyWallpaper: true, promptModel: "flux-local", imageModel: DEFAULT_IMAGE_MODEL, outputDirectory: defaultOutputDirectory(), updateMode: "notify" };
 }
 
 export function configPath() { return join(configDirectory(), "config.json"); }

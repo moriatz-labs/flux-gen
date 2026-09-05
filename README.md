@@ -35,13 +35,16 @@ The installers download the latest native binary from GitHub Releases and verify
 
 ## Quick start
 
-After installation, run the guided setup:
+After installation, download the local prompt model and runtime, then run the guided setup for image generation:
 
 ```sh
+flux local install
 flux setup
 ```
 
-Flux links you directly to the DEAPI key page, stores the pasted key in your operating system credential store, validates it with DEAPI, and applies each newly generated image as your current wallpaper. Prompt enhancement can use one additional key from OpenAI, Google, or Anthropic. If that key is missing or rejected, Flux directs the prompt locally with built-in wallpaper heuristics instead of blocking generation.
+Flux defaults to the frozen local Qwen prompt writer. It needs no prompt-provider API key. DEAPI still renders images and requires its own key, stored in your operating system credential store. Existing users keep their selected provider until they run `flux local install` or choose `flux-local` with `flux -pm`.
+
+Run `flux local start` in a separate terminal and leave it open. Preview text with `flux prompt "a quiet embroidered coastline"`, or generate an image with the command below. The model download is about 2.50 GB; allow at least 6 GB free disk space. Windows defaults to NVIDIA CUDA; use `flux local install --cpu` on Windows without NVIDIA. macOS uses native Intel/Apple Silicon runtimes. CPU inference can be considerably slower; laptop measurements are not a guarantee for other hardware.
 
 Then generate:
 
@@ -69,19 +72,20 @@ Follow the official [DEAPI quickstart](https://docs.deapi.ai/quickstart) for the
 
 ### 2. Optionally choose a prompt provider
 
-Prompt enhancement is enabled by default, but its provider key is optional. Add only the key belonging to the prompt model you select. During setup, press Enter without pasting a provider key to use Flux's built-in wallpaper director.
+Local prompt enhancement is enabled by default and needs no provider key. Cloud prompt models are optional compatibility choices. Add only the key belonging to a cloud model you explicitly select. If a selected cloud provider has no key, Flux can use built-in wallpaper heuristics; this is separate from the local language model.
 
 Choose a model during `flux setup` or change it later with `flux -pm`:
 
 | Provider | Prompt models |
 | --- | --- |
+| Local (default) | `flux-local` — frozen Qwen3-4B positive-v2 |
 | OpenAI | `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-5.6-sol` |
 | Google | `gemini-3.6-flash` |
 | Anthropic | `claude-haiku-4-5`, `claude-sonnet-5`, `claude-opus-5` |
 
 Luna and Haiku favor cost and speed, Terra and Sonnet balance quality with cost, and Sol and Opus favor maximum prompt quality. Provider access and billing still determine which models an API key can use. Run `flux models` to see the complete prompt roster and the live DEAPI image-model catalogue.
 
-Without a prompt-model key, an interactive generation asks four quick visual questions:
+When a cloud prompt model is selected without its key, interactive generation asks four quick visual questions:
 
 1. Visual style — for example photographic, illustrated, pixel art, abstract, or cinematic.
 2. Lighting — for example soft daylight, golden hour, blue hour, dramatic, or neon.
@@ -227,6 +231,20 @@ Regenerate the website demo video with FFmpeg available on `PATH`:
 ```sh
 bun run video
 ```
+
+### Local prompt writer
+
+`flux-local` is the default for new configurations. `flux local install` downloads checksum-pinned model shards and the official llama.cpp b10819 runtime, then selects local prompt writing. `flux local start` serves it only at `127.0.0.1:8080`. Leave that terminal open; Ctrl+C stops the server. Initial CUDA compilation may take several minutes; wait until the server is ready before sending requests.
+
+```sh
+flux prompt a quiet embroidered coastline
+```
+
+This command prints only an expanded prompt and does not require DEAPI or generate an image. Local refinement needs no provider API key, makes no cloud selection calls, and never falls back to a remote provider. If the local server is unavailable, Flux reports how to start it. Existing cloud model choices remain available.
+
+Prompts normally contain 80–180 words and may contain up to 250. The writer is instructed to preserve explicit orientations and constraints, but can make mistakes; review the output when those details matter. The image renderer still controls supported dimensions. The model is distributed as separate release assets, not embedded in the executable. Training data and checkpoints remain outside this repository.
+
+The frozen positive-v2 model is experimental: its 30-case blind Codex editorial comparison scored 36.7% against the stronger base-model baseline (ties counted as half), below the 60% target, with one explicit color violation. Format checks passed and no complete-prompt copying was flagged. It is released by maintainer choice, not as a proven quality improvement. Windows RTX 5070 Laptop testing measured a 1.55-second median across ten warm CLI requests and 3949 MiB peak total GPU usage. macOS and CPU quality/performance have not been measured. See [MODEL_CARD.md](MODEL_CARD.md).
 
 ### Add a prompt model
 

@@ -3,6 +3,8 @@ import { envKeys, promptModels, providerKeyUrls, VERSION } from "./constants.ts"
 import { loadConfig, saveConfig } from "./config.ts";
 import { listImageModels } from "./deapi.ts";
 import { generateWallpaper } from "./generate.ts";
+import { enhancePrompt } from "./enhance.ts";
+import { installLocal, startLocal } from "./local-runtime.ts";
 import { HttpError, isAuthenticationError } from "./http.ts";
 import { compositionChoices, lightingChoices, paletteChoices, styleChoices, type OfflineWallpaperDirection } from "./offline-prompt.ts";
 import { getApiKey, getApiKeyDetails, maskApiKey, removeApiKey, resolveApiKeyEntry, setApiKey } from "./secrets.ts";
@@ -22,6 +24,9 @@ const help = `FluxGen — describe a wallpaper in plain English
 
 Usage:
   flux <description>       Generate and save a wallpaper
+  flux prompt <idea>       Write a prompt without generating an image
+  flux local install      Download and select the local model/runtime (--cpu for Windows without NVIDIA)
+  flux local start        Run the local prompt server in this terminal
   flux                     Prompt for a description
   flux setup               Set up keys, models, and wallpaper behavior
   flux config              View configuration and key status
@@ -203,7 +208,8 @@ async function setup() {
       choices: promptModels.map((model) => ({ name: `${model.label} · ${model.provider}`, value: model.id }))
     });
     const promptProvider = promptModels.find((model) => model.id === config.promptModel)!.provider;
-    await requestKey(promptProvider, { optional: true });
+    if (promptProvider !== "local") await requestKey(promptProvider, { optional: true });
+    else console.log("Local prompt writing needs no provider key. Run flux local install, then flux local start in a separate terminal.");
   }
 
   if (models.length) {
@@ -288,7 +294,7 @@ async function showModels() {
   const config = await loadConfig();
   console.log("Prompt models\n");
   for (const model of promptModels) {
-    console.log(`  ${model.id === config.promptModel ? "●" : "○"} ${model.id.padEnd(22)} ${model.provider} · ${await safeKeyStatus(model.provider)}`);
+    console.log(`  ${model.id === config.promptModel ? "●" : "○"} ${model.id.padEnd(22)} ${model.provider} · ${model.provider === "local" ? "no API key required" : await safeKeyStatus(model.provider)}`);
   }
   console.log("\nDEAPI image models\n");
   try {
@@ -325,8 +331,8 @@ async function generate(description: string) {
   let offlineDirection: OfflineWallpaperDirection | undefined;
   if (config.enhancement) {
     const promptProvider = promptModels.find((model) => model.id === config.promptModel)!.provider;
-    const promptKey = await getApiKey(promptProvider);
-    if (!promptKey && process.stdin.isTTY && process.stdout.isTTY) {
+    const promptKey = promptProvider === "local" ? "" : await getApiKey(promptProvider);
+    if (promptProvider !== "local" && !promptKey && process.stdin.isTTY && process.stdout.isTTY) {
       offlineDirection = await collectOfflineWallpaperDirection();
     }
   }
@@ -383,7 +389,23 @@ export async function runCli(args = Bun.argv.slice(2)) {
   const [command, subcommand] = args;
   if (command === "--help" || command === "-h" || command === "help") return console.log(help);
   if (command === "--version" || command === "-v") return console.log(VERSION);
+  if (command === "local") {
+    if (subcommand === "install") return installLocal(args.includes("--cpu"));
+    if (subcommand === "start") return startLocal();
+    throw new Error("Usage: flux local install [--cpu] | flux local start");
+  }
   if (command === "update") return updateCommand(subcommand === "--check" || subcommand === "check");
+  if (command === "prompt") {
+    const request = args.slice(1).join(" ").trim();
+    if (!request) throw new Error("Usage: flux prompt <idea>");
+    const config = await loadConfig();
+    const provider = promptModels.find((model) => model.id === config.promptModel)!.provider;
+    const apiKey = provider === "local" ? "" : await getApiKey(provider);
+    if (provider !== "local" && !apiKey) throw new Error(`No ${provider} key configured. Select flux-local with flux -pm to use your local model.`);
+    const catalogue = await discoverSkills();
+    const result = await enhancePrompt({ request, model: config.promptModel, apiKey: apiKey ?? "", skills: catalogue.skills });
+    return console.log(result.prompt);
+  }
   await handleConfiguredUpdates();
   if (command === "setup") return setup();
   if (command === "config") {

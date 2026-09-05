@@ -27,7 +27,7 @@
           <img class="hero-mark" src="/flux-logo-light-cropped.png" alt="" width="112" height="112" />
           <p class="eyebrow">A wallpaper command line</p>
           <h1 id="hero-title">Stop searching for wallpapers.<br /> Start <em>describing them.</em></h1>
-          <p class="lede">Your next wallpaper is one sentence away.</p>
+          <p class="lede">A local model shapes your idea. DEAPI brings it to your screen.</p>
         </div>
 
         <figure class="showreel">
@@ -37,7 +37,7 @@
             </video>
             <span class="playing"><i aria-hidden="true"></i> Made with Flux</span>
           </div>
-          <figcaption><span>One guided setup</span><span>Plain English prompt</span><span>Applied instantly</span></figcaption>
+          <figcaption><span>One guided setup</span><span>Plain English prompt</span><span>Save or apply</span></figcaption>
         </figure>
 
         <div class="installer" aria-label="Installation commands">
@@ -54,6 +54,7 @@
             <button class="copy" type="button" data-copy="curl -fsSL https://flux-gen.moriatz.com/install.sh | sh" aria-label="Copy macOS installation command">[ copy ]</button>
           </div>
         </div>
+        <p class="release-note">Local prompt writing is the default in <a href="https://github.com/moriatz-labs/flux-gen/releases/tag/v0.10.0">v0.10.0</a>. Download the model once with <code>flux local install</code>. Image generation requires a DEAPI key.</p>
         <p class="first-command">After setup, type <code>flux a quiet observatory above the clouds at blue hour</code></p>
       </section>
 
@@ -77,7 +78,7 @@
       <section class="content-section" id="documentation" aria-labelledby="documentation-title">
         <p class="eyebrow">Documentation</p>
         <h2 id="documentation-title">Your first wallpaper, in three steps.</h2>
-        <p class="docs-intro">One install command, one guided setup, then describe the wallpaper you want in plain English.</p>
+        <p class="docs-intro">Install Flux, download the local prompt writer, and add your DEAPI key for images. Prompt writing runs on your computer without a prompt-provider key.</p>
         <div class="docs-install" aria-label="Quick installation commands">
           <div><span>Windows</span><code>irm https://flux-gen.moriatz.com/install.ps1.txt | iex</code></div>
           <div><span>macOS</span><code>curl -fsSL https://flux-gen.moriatz.com/install.sh | sh</code></div>
@@ -85,31 +86,31 @@
         <ol class="onboarding">
           <li>
             <span class="step-number" aria-hidden="true">01</span>
-            <div><h3>Install Flux</h3><p>Use the installer above, then open a new terminal.</p></div>
-            <code>flux --version</code>
+            <div><h3>Install Flux</h3><p>Use the installer above, open a new terminal, then download the model and runtime (about 2.50 GB plus runtime files).</p></div>
+            <code>flux local install</code>
           </li>
           <li>
             <span class="step-number" aria-hidden="true">02</span>
-            <div><h3>Run the guided setup</h3><p>Flux opens the right key pages, stores and validates what you paste, lets you choose both models, and can keep itself updated.</p></div>
+            <div><h3>Run the guided setup</h3><p>Add your DEAPI key for image generation. Keep the default local prompt writer, then choose your image model and update preferences.</p></div>
             <code>flux setup</code>
           </li>
           <li>
             <span class="step-number" aria-hidden="true">03</span>
-            <div><h3>Describe a wallpaper</h3><p>Flux saves it to <strong>Pictures/FluxGen</strong> and immediately applies it as your current wallpaper.</p></div>
+            <div><h3>Describe a wallpaper</h3><p>First run <code>flux local start</code> in a separate terminal and leave it open. Flux expands your idea locally, renders through DEAPI, then saves or applies the wallpaper.</p></div>
             <code>flux "a quiet blue-hour coast"</code>
           </li>
         </ol>
-        <p class="onboarding-note">A prompt-provider key is optional. Without one, Flux asks about style, lighting, composition, and color. Press Enter to skip any answer and let Flux decide.</p>
+        <p class="onboarding-note">Windows uses NVIDIA CUDA by default; use <code>flux local install --cpu</code> on Windows without NVIDIA. macOS uses a native runtime. Allow at least 6 GB free disk space. First startup can take several minutes; CPU speed varies. Existing users switch to local writing when they run <code>flux local install</code>.</p>
 
         <div class="docs-grid">
           <article>
             <p class="eyebrow">Get API keys</p>
-            <h3>Open the provider, create a key, then paste it into <code>flux setup</code>.</h3>
+            <h3>One API key for images. No API key for local prompts.</h3>
             <ul class="link-list">
               <li><a href="https://app.deapi.ai/settings/api-keys" target="_blank" rel="noreferrer"><span>Required</span>DEAPI API keys ↗</a></li>
-              <li><a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer"><span>Prompt model</span>OpenAI API keys ↗</a></li>
-              <li><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer"><span>Prompt model</span>Google AI Studio keys ↗</a></li>
-              <li><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer"><span>Prompt model</span>Anthropic API keys ↗</a></li>
+              <li><a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer"><span>Optional cloud</span>OpenAI API keys ↗</a></li>
+              <li><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer"><span>Optional cloud</span>Google AI Studio keys ↗</a></li>
+              <li><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer"><span>Optional cloud</span>Anthropic API keys ↗</a></li>
             </ul>
             <p class="quickstarts">Official guides: <a href="https://docs.deapi.ai/quickstart" target="_blank" rel="noreferrer">DEAPI</a> · <a href="https://platform.openai.com/docs/quickstart" target="_blank" rel="noreferrer">OpenAI</a> · <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noreferrer">Gemini</a> · <a href="https://platform.claude.com/docs/en/manage-claude/authentication" target="_blank" rel="noreferrer">Anthropic</a></p>
           </article>
@@ -130,13 +131,27 @@
 
       <section class="content-section models" id="models" aria-labelledby="models-title">
         <p class="eyebrow">Models</p>
-        <h2 id="models-title">Choose the right brain for the prompt.</h2>
+        <h2 id="models-title">One model writes. Another renders.</h2>
+        <p class="docs-intro">Flux local is the default prompt writer. DEAPI generates the image. Cloud prompt providers remain optional choices for existing workflows.</p>
         <div class="model-list">
+          <a href="https://github.com/moriatz-labs/flux-gen/blob/main/MODEL_CARD.md"><span>Local · default</span><strong>Flux local · Qwen3-4B positive-v2</strong><i>Model card ↗</i></a>
           <a href="https://developers.openai.com/api/docs/models" target="_blank" rel="noreferrer"><span>OpenAI</span><strong>GPT-5.6 Luna · Terra · Sol</strong><i>Model docs ↗</i></a>
           <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noreferrer"><span>Google</span><strong>Gemini 3.6 Flash</strong><i>Model docs ↗</i></a>
           <a href="https://platform.claude.com/docs/en/about-claude/models/overview" target="_blank" rel="noreferrer"><span>Anthropic</span><strong>Claude Haiku 4.5 · Sonnet 5 · Opus 5</strong><i>Model docs ↗</i></a>
           <a href="https://docs.deapi.ai/models" target="_blank" rel="noreferrer"><span>Images</span><strong>Live DEAPI text-to-image catalogue</strong><i>Browse models ↗</i></a>
         </div>
+      </section>
+
+      <section class="content-section" id="local-prompts" aria-labelledby="local-prompts-title">
+        <p class="eyebrow">Local prompt writing</p>
+        <h2 id="local-prompts-title">A prompt writer that runs on your computer.</h2>
+        <p class="docs-intro">FluxGen connects to a separately downloaded, fine-tuned Qwen text model. It expands short ideas locally, then passes the prompt to the existing image-generation workflow.</p>
+        <ol class="onboarding">
+          <li><span class="step-number" aria-hidden="true">01</span><div><h3>Start with a short idea</h3><p>Flux selects relevant wallpaper guidance locally, without a cloud skill-selection call.</p></div><code>a quiet embroidered coastline</code></li>
+          <li><span class="step-number" aria-hidden="true">02</span><div><h3>Preview the expanded prompt</h3><p>Run <code>flux local install</code> once, then <code>flux local start</code>. Preview the expanded text without an image-generation key.</p></div><code>flux prompt "a quiet embroidered coastline"</code></li>
+          <li><span class="step-number" aria-hidden="true">03</span><div><h3>Generate the wallpaper</h3><p>DEAPI still creates the image and requires its API key. Local prompt writing does not make image generation local.</p></div><code>flux "a quiet embroidered coastline"</code></li>
+        </ol>
+        <p class="onboarding-note">The frozen model is experimental and did not pass its pilot quality comparison against the base model. It can drift from subjects or constraints; review prompts when those details matter. <a href="https://github.com/moriatz-labs/flux-gen/blob/main/MODEL_CARD.md">Read the evaluation and hardware notes.</a> Cloud providers remain available; when local mode is selected, a server failure produces an error instead of silently sending the prompt to a cloud provider.</p>
       </section>
     </main>
 

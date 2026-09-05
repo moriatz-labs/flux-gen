@@ -181,6 +181,8 @@ nav a.active::after, nav a:hover::after { background: var(--blue); }
 .copy { flex: 0 0 auto; padding: 13px 17px; border: 1px solid var(--rule); background: transparent; color: #4d5b69; cursor: pointer; font: 650 11px/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
 .copy:hover { background: white; border-color: #a8a39d; }
 .first-command { margin: 18px 0 0; color: var(--muted); font-size: 14px; }
+.release-note { max-width: 700px; margin: 18px auto 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.release-note a { color: inherit; text-underline-offset: 3px; }
 
 .wallpaper-story {
   --slide-width: 100%;
