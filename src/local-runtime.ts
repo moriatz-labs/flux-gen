@@ -42,7 +42,17 @@ export async function downloadVerified(file: Download, directory: string, fetche
   const temporary = `${target}.${crypto.randomUUID()}.partial`;
   const response = await fetcher(file.url, { signal: AbortSignal.timeout(3_600_000) });
   if (!response.ok) throw new Error(`Download failed for ${file.name}: HTTP ${response.status}. Run flux local install again.`);
-  await Bun.write(temporary, response);
+  if (!response.body) throw new Error(`Empty download response for ${file.name}.`);
+  const reader = response.body.getReader();
+  const writer = Bun.file(temporary).writer();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      writer.write(value);
+      await writer.flush();
+    }
+  } finally { reader.releaseLock(); await writer.end(); }
   if (await digest(temporary) !== file.sha256) throw new Error(`Checksum verification failed for ${file.name}. Untrusted download was not installed.`);
   await rename(temporary, target);
   return target;
