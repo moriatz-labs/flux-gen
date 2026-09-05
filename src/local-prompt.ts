@@ -1,7 +1,7 @@
 /** Local inference deliberately has no remote fallback or credential support. */
 export async function completeLocalPrompt(system: string, user: string, fetchImplementation: typeof fetch = fetch) {
   const unavailable = "Flux local prompt server is unavailable or timed out. Run flux local install once, then flux local start in another terminal (127.0.0.1:8080). Wait for the server to finish loading and try again.";
-  const signal = AbortSignal.timeout(60_000);
+  const signal = AbortSignal.timeout(180_000);
   let response: Response;
   try {
     response = await fetchImplementation("http://127.0.0.1:8080/v1/chat/completions", {
@@ -28,3 +28,4 @@ export async function completeLocalPrompt(system: string, user: string, fetchImp
   if (choice?.finish_reason !== "stop" || typeof choice.message?.content !== "string") return "";
   return choice.message.content.trim();
 }
+
