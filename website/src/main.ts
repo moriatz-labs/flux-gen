@@ -9,6 +9,8 @@ if (demoVideo && reducedMotion.matches) {
 }
 
 const wallpapers = [
+  ["obsidian-colossus.png", "Dark fantasy", "An obsidian colossus glowing with ember-red cracks beneath a stormy sky."],
+  ["cathedral-knight.png", "Gothic fantasy", "A lone knight raising a sword before a towering Gothic cathedral."],
   ["glacial-lagoon.webp", "Photographic", "Pale ice arches holding the first yellow light of morning."],
   ["golden-grasslands.webp", "Painterly", "An open field beneath enormous blue weather."],
   ["brutalist-sea-house.webp", "Architecture", "Concrete, clear water, and one yellow chair."],
