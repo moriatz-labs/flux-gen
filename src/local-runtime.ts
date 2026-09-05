@@ -31,7 +31,7 @@ async function digest(path: string) {
   for await (const chunk of createReadStream(path)) hash.update(chunk);
   return hash.digest("hex");
 }
-export async function downloadVerified(file: Download, directory: string, fetcher: typeof fetch = fetch) {
+export async function downloadVerified(file: Download, directory: string, fetcher?: typeof fetch) {
   if (!/^[a-zA-Z0-9._-]+$/.test(file.name) || !/^[a-f0-9]{64}$/.test(file.sha256)) throw new Error("Invalid download manifest.");
   await mkdir(directory, { recursive: true });
   const target = join(directory, file.name);
@@ -40,19 +40,26 @@ export async function downloadVerified(file: Download, directory: string, fetche
     return target;
   }
   const temporary = `${target}.${crypto.randomUUID()}.partial`;
-  const response = await fetcher(file.url, { signal: AbortSignal.timeout(3_600_000) });
-  if (!response.ok) throw new Error(`Download failed for ${file.name}: HTTP ${response.status}. Run flux local install again.`);
-  if (!response.body) throw new Error(`Empty download response for ${file.name}.`);
-  const reader = response.body.getReader();
-  const writer = Bun.file(temporary).writer();
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      writer.write(value);
-      await writer.flush();
-    }
-  } finally { reader.releaseLock(); await writer.end(); }
+  // System curl streams multi-GB release assets reliably on supported Windows/macOS.
+  // The injected transport keeps integrity tests isolated from the network.
+  if (!fetcher) {
+    const transfer = Bun.spawn([process.platform === "win32" ? "curl.exe" : "curl", "--fail", "--location", "--proto", "=https", "--proto-redir", "=https", "--max-time", "3600", "--silent", "--show-error", "--output", temporary, file.url], { stdout: "inherit", stderr: "inherit" });
+    if (await transfer.exited !== 0) throw new Error(`Download failed for ${file.name}. Check your connection and run flux local install again.`);
+  } else {
+    const response = await fetcher(file.url, { signal: AbortSignal.timeout(3_600_000) });
+    if (!response.ok) throw new Error(`Download failed for ${file.name}: HTTP ${response.status}. Run flux local install again.`);
+    if (!response.body) throw new Error(`Empty download response for ${file.name}.`);
+    const reader = response.body.getReader();
+    const writer = Bun.file(temporary).writer();
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        writer.write(value);
+        await writer.flush();
+      }
+    } finally { reader.releaseLock(); await writer.end(); }
+  }
   if (await digest(temporary) !== file.sha256) throw new Error(`Checksum verification failed for ${file.name}. Untrusted download was not installed.`);
   await rename(temporary, target);
   return target;
