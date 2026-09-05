@@ -9,4 +9,4 @@ description: Builds convincing landscapes, cityscapes, interiors, and imagined e
 - Build depth with foreground anchors, a readable middle-distance subject, and atmospheric distance.
 - Use scale cues such as paths, trees, windows, figures, or clouds sparingly.
 - Describe materials and vegetation precisely enough to avoid a generic environment.
-- Keep the horizon and large masses intentional within the widescreen frame.
+- Keep the horizon and large masses intentional within the requested frame; use widescreen when orientation is unspecified.

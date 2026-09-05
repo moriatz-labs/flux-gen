@@ -7,7 +7,7 @@ describe("generation fallback", () => {
   test("builds a wallpaper-directed prompt when the prompt-provider key is missing", async () => {
     const notices: string[] = [];
     let submittedPrompt = "";
-    const result = await generateWallpaper("quiet coast", defaultConfig(), {
+    const result = await generateWallpaper("quiet coast", { ...defaultConfig(), promptModel: "gpt-5.6-luna" }, {
       onNotice: (message) => notices.push(message)
     }, {
       getApiKey: async (provider) => provider === "deapi" ? "deapi-key" : null,
@@ -24,7 +24,7 @@ describe("generation fallback", () => {
 
   test("falls back to DEAPI when the prompt provider rejects its key", async () => {
     let submittedPrompt = "";
-    const result = await generateWallpaper("quiet coast", defaultConfig(), {}, {
+    const result = await generateWallpaper("quiet coast", { ...defaultConfig(), promptModel: "gpt-5.6-luna" }, {}, {
       getApiKey: async () => "configured-key",
       discoverSkills: async () => ({ skills: [], warnings: [] }),
       enhancePrompt: async () => { throw new HttpError(401, "https://api.openai.com/v1/responses", "Unauthorized"); },

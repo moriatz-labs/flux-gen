@@ -1,5 +1,6 @@
 import { promptModels } from "./constants.ts";
 import { fetchJson } from "./http.ts";
+import { completeLocalPrompt } from "./local-prompt.ts";
 import type { PromptModelId } from "./types.ts";
 
 export function providerForModel(model: PromptModelId) {
@@ -21,6 +22,7 @@ export async function completePrompt(
   fetchImplementation: typeof fetch = fetch
 ) {
   const provider = providerForModel(model);
+  if (provider === "local") return completeLocalPrompt(system, user, fetchImplementation);
   if (provider === "openai") {
     const payload = await fetchJson<{
       output_text?: string;
