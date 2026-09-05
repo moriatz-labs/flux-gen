@@ -76,4 +76,3 @@ describe("local prompt writer", () => {
     expect(result.prompt).toBe(prompt);
   });
 });
-

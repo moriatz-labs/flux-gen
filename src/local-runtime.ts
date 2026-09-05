@@ -93,4 +93,3 @@ export async function startLocal() {
   try { const code = await child.exited; if (code !== 0 && code !== 130) throw new Error(`Local server exited (${code}). Check port 8080 and available memory; Windows without NVIDIA should use flux local install --cpu.`); }
   finally { process.off("SIGINT", stop); }
 }
-

@@ -30,4 +30,3 @@ test("downloads are verified, reused only when intact, and corrupt content is ne
     await expect(downloadVerified({ ...file, name: "../escape" }, directory, fetcher)).rejects.toThrow("manifest");
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
-
