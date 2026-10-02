@@ -6,6 +6,7 @@ import { loadConfig } from "./config.ts";
 import { generateWallpaper } from "./generate.ts";
 import { CODEX_IMAGE_MODEL } from "./codex-image.ts";
 import { applyWallpaper } from "./wallpaper.ts";
+import { archivePaperImage } from "./paper.ts";
 import { chooseForestPlan, forestDate } from "./forest-profile.ts";
 import { acquireForestLock, addWebVariant, atomicJson, publishForestAssets, readManifest, storeForestImage, verifyAsset, type ForestManifest } from "./forest-assets.ts";
 
@@ -40,7 +41,7 @@ export async function readForestHistory(root: string): Promise<ForestManifest[]>
 }
 
 export async function dailyForest(settings: ForestSettings, config: Awaited<ReturnType<typeof loadConfig>>, options: { publish?: boolean; now?: Date; stateDirectory?: string; onPhase?: (text: string) => void } = {}, dependencies: {
-  generate?: typeof generateWallpaper; apply?: typeof applyWallpaper; convert?: Parameters<typeof addWebVariant>[2]; publish?: typeof publishForestAssets;
+  generate?: typeof generateWallpaper; apply?: typeof applyWallpaper; convert?: Parameters<typeof addWebVariant>[2]; publish?: typeof publishForestAssets; archive?: typeof archivePaperImage;
 } = {}) {
   if (config.imageModel !== CODEX_IMAGE_MODEL || !["codex", "codex-sol"].includes(config.promptModel)) throw new Error("Daily forests require Codex subscription generation. Select flux -pm codex and flux -im codex-image first.");
   const now = options.now ?? new Date();
@@ -55,6 +56,7 @@ export async function dailyForest(settings: ForestSettings, config: Awaited<Retu
       const result = await (dependencies.generate ?? generateWallpaper)(plan.request, config, { onPhase: options.onPhase, onNotice: options.onPhase });
       manifest = await storeForestImage(settings.assetsDirectory, plan, result, config, now);
     } else options.onPhase?.(`Reusing today's saved forest (${date}); no image generation requested.`);
+    await (dependencies.archive ?? archivePaperImage)(await verifyAsset(settings.assetsDirectory, manifest.original), { daily: true, onNotice: options.onPhase });
     manifest = await addWebVariant(settings.assetsDirectory, manifest, dependencies.convert);
     const path = await verifyAsset(settings.assetsDirectory, manifest.original);
     const statePath = join(options.stateDirectory ?? configDirectory(), `forest-state-${createHash("sha256").update(settings.assetsDirectory).digest("hex").slice(0, 12)}.json`);

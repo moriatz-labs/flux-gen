@@ -65,6 +65,19 @@ Schedule `flux forest daily --publish` in a Codex chat for a daily run. Local sc
 
 On Noctalia, automatic login-greeter appearance synchronization can request administrator authentication after a wallpaper change. To keep unattended desktop changes unprivileged, set `auto_sync = false` in the user's `[shell.greeter_sync]` configuration and run `noctalia msg config-reload`. Manual greeter synchronization retains normal system authentication.
 
+### Store every image in Paper
+
+Create a Paper file and page, enable Paper's desktop MCP, and connect their IDs:
+
+```sh
+flux paper init --file YOUR_FILE_ID --page YOUR_PAGE_ID --daily-page YOUR_DAILY_PAGE_ID
+flux paper sync
+```
+
+Once connected, ordinary generation and `forest daily` import each original PNG as a full-size image on its own artboard. Copies with the same SHA-256 share one entry. Paper receives the pixels, so the saved image does not depend on its original local path. If Paper is closed or an upload fails, Flux preserves pending pixels locally and continues the wallpaper workflow. The next generation or `flux paper sync` retries without regenerating or duplicating images, including interrupted imports.
+
+Settings live in the user configuration directory's `paper.json`, outside the repository. Its `sources` array can include additional absolute image directories with optional `pageId` destinations; sync scans original PNGs recursively, excluding verification screenshots and WebP derivatives. The default source is the configured wallpaper output directory. Paper must be running for uploads; no additional API key is needed. Include `flux paper sync` in a daily Codex automation to catch up other image sources.
+
 ### General wallpaper generation
 
 After installation, download the local prompt model and runtime, then run the guided setup for image generation:

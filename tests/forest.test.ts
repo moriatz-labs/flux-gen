@@ -61,8 +61,9 @@ describe("daily forest", () => {
   test("generates, applies and converts once; reuses the same day and retries publishing without regenerating", async () => {
     const source = await sourceImage();
     const settings = { assetsDirectory: join(root, "assets"), remote, timeZone: "Asia/Kolkata" };
-    let renders = 0, applies = 0, conversions = 0, publishes = 0;
+    let renders = 0, applies = 0, conversions = 0, publishes = 0, archives = 0;
     const deps = {
+      archive: async () => { archives++; },
       generate: async () => { renders++; return { path: source, prompt: "A completed forest prompt.", skills: ["enchanted-forest"], requestId: "mock", enhanced: true, width: 1672, height: 941 }; },
       apply: async () => { applies++; },
       convert: async (input: string, output: string) => { conversions++; await copyFile(input, output); },
@@ -73,6 +74,7 @@ describe("daily forest", () => {
     const result = await dailyForest(settings, config, options, deps);
     expect(result.reused).toBe(true);
     expect([renders, applies, conversions, publishes]).toEqual([1, 1, 1, 2]);
+    expect(archives).toBe(2);
     expect(result.manifest.width).toBe(1672);
     expect(result.manifest.original.path).not.toContain(root);
     expect(result.manifest.web?.path).toEndWith(".webp");
@@ -82,7 +84,7 @@ describe("daily forest", () => {
     const source = await sourceImage();
     const settings = { assetsDirectory: join(root, "assets"), remote, timeZone: "Asia/Kolkata" };
     let renders = 0;
-    const deps = { generate: async () => { renders++; return { path: source, prompt: "forest", skills: [], requestId: "mock", enhanced: false }; }, apply: async () => {} };
+    const deps = { archive: async () => {}, generate: async () => { renders++; return { path: source, prompt: "forest", skills: [], requestId: "mock", enhanced: false }; }, apply: async () => {} };
     await expect(dailyForest(settings, config, { now: today, stateDirectory: join(root, "state") }, { ...deps, convert: async () => { throw new Error("ffmpeg unavailable"); } })).rejects.toThrow("ffmpeg unavailable");
     const result = await dailyForest(settings, config, { now: today, stateDirectory: join(root, "state") }, { ...deps, convert: copyFile });
     expect(result.reused).toBe(true); expect(renders).toBe(1);

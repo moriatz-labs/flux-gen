@@ -12,6 +12,7 @@ import { discoverSkills } from "./skills.ts";
 import { applyNextWallpaper, applyWallpaper } from "./wallpaper.ts";
 import { CODEX_IMAGE_MODEL } from "./codex-image.ts";
 import { runForestCommand } from "./forest.ts";
+import { archivePaperImage, runPaperCommand } from "./paper.ts";
 import { checkForUpdate, maybeCheckForUpdates, updateNow } from "./update.ts";
 import type { DeapiModel, PromptModelId, ProviderId, UpdateMode } from "./types.ts";
 
@@ -30,6 +31,8 @@ Usage:
   flux forest plan         Preview today's forest colors and unique element
   flux forest daily [--publish]  Generate once per day, save to Global Assets, and apply
   flux forest init --assets <path> --remote <url> [--timezone <zone>]  Connect a shared assets repository
+  flux paper init --file <id> --page <id> [--daily-page <id>]  Archive generated images in Paper
+  flux paper sync           Import existing originals and retry pending Paper uploads
   flux local install      Download and select the local model/runtime (--cpu without a compatible GPU)
   flux local start        Run the local prompt server in this terminal
   flux                     Prompt for a description
@@ -366,6 +369,7 @@ async function generate(description: string) {
     }
   });
   console.log(`\nSaved ${result.path}`);
+  await archivePaperImage(result.path, { onNotice: console.log });
   if (config.applyWallpaper) {
     try {
       await applyWallpaper(result.path);
@@ -406,6 +410,7 @@ export async function runCli(args = Bun.argv.slice(2)) {
   if (command === "--help" || command === "-h" || command === "help") return console.log(help);
   if (command === "--version" || command === "-v") return console.log(VERSION);
   if (command === "forest") return runForestCommand(args.slice(1));
+  if (command === "paper") return runPaperCommand(args.slice(1));
   if (command === "local") {
     if (subcommand === "install") return installLocal(args.includes("--cpu"));
     if (subcommand === "start") return startLocal();
