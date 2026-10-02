@@ -24,7 +24,10 @@ export function runtimeFiles(platform: string, arch: string, cpu = false): Downl
   ];
   if (platform === "darwin" && arch === "arm64") return [asset("llama-b10819-bin-macos-arm64.tar.gz", "8933e736495eadfef0731ae32054acfaa75699bf4a6ccba77cd8475db085ec66")];
   if (platform === "darwin" && arch === "x64") return [asset("llama-b10819-bin-macos-x64.tar.gz", "04dd13ec03120685bd6e1931e8f1562d2c981ca076a3e63cc44e9a199b37816a")];
-  throw new Error("The local runtime supports Windows x64 and macOS arm64/x64.");
+  if (platform === "linux" && arch === "x64") return [cpu
+    ? asset("llama-b10819-bin-ubuntu-x64.tar.gz", "bff96585dfa126d2bc915367b3735982a5e67ddf887138a7c6e9d7cc9b438146")
+    : asset("llama-b10819-bin-ubuntu-vulkan-x64.tar.gz", "2175737ab85506e7639fc7f8c84b5247fd607cc6e7030825c6dcadd4279f62e3")];
+  throw new Error("The local runtime supports Windows/Linux x64 and macOS arm64/x64.");
 }
 async function digest(path: string) {
   const hash = createHash("sha256");
@@ -40,7 +43,7 @@ export async function downloadVerified(file: Download, directory: string, fetche
     return target;
   }
   const temporary = `${target}.${crypto.randomUUID()}.partial`;
-  // System curl streams multi-GB release assets reliably on supported Windows/macOS.
+  // System curl streams multi-GB release assets without buffering them in memory.
   // The injected transport keeps integrity tests isolated from the network.
   if (!fetcher) {
     const transfer = Bun.spawn([process.platform === "win32" ? "curl.exe" : "curl", "--fail", "--location", "--proto", "=https", "--proto-redir", "=https", "--max-time", "3600", "--silent", "--show-error", "--output", temporary, file.url], { stdout: "inherit", stderr: "inherit" });
@@ -76,7 +79,7 @@ export async function installLocal(cpu = false) {
   const root = join(configDirectory(), "local", "positive-v2");
   const runtime = join(root, `b10819-${process.platform}-${process.arch}-${cpu ? "cpu" : "gpu"}`);
   console.log("Downloading the frozen local prompt model (2.50 GB) and verified llama.cpp runtime. Allow at least 6 GB free disk space.");
-  console.log("Windows defaults to NVIDIA CUDA; use flux local install --cpu on other Windows hardware. macOS uses the native runtime.");
+  console.log("Windows defaults to NVIDIA CUDA, Linux to Vulkan, and macOS to its native runtime. Use --cpu on Windows/Linux without a compatible GPU.");
   for (const file of [...modelFiles, ...modelNotices]) { console.log(`Verifying/downloading ${file.name}…`); await downloadVerified(file, root); }
   await mkdir(runtime, { recursive: true });
   for (const file of files) {
@@ -99,7 +102,7 @@ export async function installLocal(cpu = false) {
 export async function startLocal() {
   const root = join(configDirectory(), "local", "positive-v2");
   const manifest = Bun.file(join(root, "installation.json"));
-  if (!await manifest.exists()) throw new Error("Local model is not installed. Run flux local install first (or flux local install --cpu for Windows without NVIDIA).");
+  if (!await manifest.exists()) throw new Error("Local model is not installed. Run flux local install first (or flux local install --cpu on Windows/Linux without a compatible GPU).");
   const { server, cpu } = await manifest.json() as { server: string; cpu: boolean };
   if (typeof server !== "string" || !(await stat(server)).isFile()) throw new Error("Local runtime is missing. Run flux local install again.");
   for (const file of modelFiles) if (!await Bun.file(join(root, file.name)).exists()) throw new Error("A model shard is missing. Run flux local install again.");
@@ -107,6 +110,6 @@ export async function startLocal() {
   const child = Bun.spawn([server, "--model", join(root, modelFiles[0]!.name), "--alias", "flux-local", "--host", "127.0.0.1", "--port", "8080", "--ctx-size", "4096", "--parallel", "1", "--n-gpu-layers", cpu ? "0" : "99", "--cors-origins", "localhost", "--no-cors-credentials"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
   const stop = () => child.kill("SIGINT");
   process.on("SIGINT", stop);
-  try { const code = await child.exited; if (code !== 0 && code !== 130) throw new Error(`Local server exited (${code}). Check port 8080 and available memory; Windows without NVIDIA should use flux local install --cpu.`); }
+  try { const code = await child.exited; if (code !== 0 && code !== 130) throw new Error(`Local server exited (${code}). Check port 8080 and available memory; Windows/Linux without a compatible GPU should use flux local install --cpu.`); }
   finally { process.off("SIGINT", stop); }
 }

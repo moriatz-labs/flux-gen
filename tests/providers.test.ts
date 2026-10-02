@@ -3,6 +3,7 @@ import { completePrompt, providerForModel } from "../src/prompt-providers.ts";
 
 describe("prompt providers", () => {
   test("maps the curated models", () => {
+    expect(providerForModel("codex")).toBe("codex");
     expect(providerForModel("gpt-5.6-luna")).toBe("openai");
     expect(providerForModel("gpt-5.6-terra")).toBe("openai");
     expect(providerForModel("gpt-5.6-sol")).toBe("openai");

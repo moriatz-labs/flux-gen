@@ -10,6 +10,8 @@ import { compositionChoices, lightingChoices, paletteChoices, styleChoices, type
 import { getApiKey, getApiKeyDetails, maskApiKey, removeApiKey, resolveApiKeyEntry, setApiKey } from "./secrets.ts";
 import { discoverSkills } from "./skills.ts";
 import { applyNextWallpaper, applyWallpaper } from "./wallpaper.ts";
+import { CODEX_IMAGE_MODEL } from "./codex-image.ts";
+import { runForestCommand } from "./forest.ts";
 import { checkForUpdate, maybeCheckForUpdates, updateNow } from "./update.ts";
 import type { DeapiModel, PromptModelId, ProviderId, UpdateMode } from "./types.ts";
 
@@ -25,7 +27,10 @@ const help = `FluxGen — describe a wallpaper in plain English
 Usage:
   flux <description>       Generate and save a wallpaper
   flux prompt <idea>       Write a prompt without generating an image
-  flux local install      Download and select the local model/runtime (--cpu for Windows without NVIDIA)
+  flux forest plan         Preview today's forest colors and unique element
+  flux forest daily [--publish]  Generate once per day, save to Global Assets, and apply
+  flux forest init --assets <path> --remote <url> [--timezone <zone>]  Connect a shared assets repository
+  flux local install      Download and select the local model/runtime (--cpu without a compatible GPU)
   flux local start        Run the local prompt server in this terminal
   flux                     Prompt for a description
   flux setup               Set up keys, models, and wallpaper behavior
@@ -34,8 +39,8 @@ Usage:
   flux config enhancement  Turn prompt enhancement on or off
   flux config wallpaper    Apply new wallpapers automatically or save only
   flux config updates      Choose automatic, notification-only, or no update checks
-  flux prompt-model, -pm   Select the prompt model
-  flux image-model, -im    Select a DEAPI image model
+  flux prompt-model, -pm [codex|codex-sol]   Select the prompt model
+  flux image-model, -im [codex-image]  Select subscription or DEAPI image generation
   flux models              List supported prompt and image models
   flux skills              List bundled and user SKILL.md packages
   flux wallpaper next      Apply another image from Pictures/FluxGen
@@ -59,6 +64,7 @@ async function showConfig() {
   console.log(`  Enhancement       ${config.enhancement ? "on" : "off"}`);
   console.log(`  Apply wallpaper   ${config.applyWallpaper ? "on" : "off"}`);
   console.log(`  Prompt model      ${config.promptModel}`);
+  if (config.promptModel === "codex" || config.promptModel === "codex-sol") console.log(`  Codex model       ${config.promptModel === "codex-sol" ? "gpt-6.1-sol" : "gpt-6-astra"} · high reasoning`);
   console.log(`  Image model       ${config.imageModel}`);
   console.log(`  Updates           ${config.updateMode}`);
   console.log("\nAPI keys");
@@ -155,9 +161,10 @@ async function configureUpdates() {
   console.log(`Updates set to ${config.updateMode}.`);
 }
 
-async function configurePromptModel() {
+async function configurePromptModel(requested?: string) {
   const config = await loadConfig();
-  config.promptModel = await select<PromptModelId>({
+  if (requested && !promptModels.some((model) => model.id === requested)) throw new Error(`Unsupported prompt model: ${requested}`);
+  config.promptModel = requested as PromptModelId ?? await select<PromptModelId>({
     message: "Prompt model",
     default: config.promptModel,
     choices: promptModels.map((model) => ({ name: `${model.label} · ${model.provider}`, value: model.id }))
@@ -172,14 +179,17 @@ async function fetchModelsOrExplain() {
   return listImageModels(key);
 }
 
-async function configureImageModel() {
-  const [config, models] = await Promise.all([loadConfig(), fetchModelsOrExplain()]);
-  if (!models.length) throw new Error("DEAPI returned no text-to-image models.");
-  config.imageModel = await select({
+async function configureImageModel(requested?: string) {
+  const config = await loadConfig();
+  const key = requested === CODEX_IMAGE_MODEL ? null : await getApiKey("deapi");
+  const models = key ? await listImageModels(key) : [];
+  if (requested && requested !== CODEX_IMAGE_MODEL && !models.some((model) => model.slug === requested)) throw new Error(`Image model not available: ${requested}`);
+  config.imageModel = requested ?? await select({
     message: "Image model",
     default: config.imageModel,
     pageSize: 14,
-    choices: models.map((model) => ({ name: `${model.name} · ${model.slug}`, value: model.slug }))
+    choices: [{ name: "GPT Image 2 · Codex/ChatGPT subscription · no API key", value: CODEX_IMAGE_MODEL },
+      ...models.map((model) => ({ name: `${model.name} · ${model.slug}`, value: model.slug }))]
   });
   await saveConfig(config);
   console.log(`Image model set to ${config.imageModel}.`);
@@ -187,19 +197,21 @@ async function configureImageModel() {
 
 async function setup() {
   console.log("Flux setup\n");
-  await requestKey("deapi");
+  const config = await loadConfig();
+  const subscriptionImage = config.imageModel === CODEX_IMAGE_MODEL;
+  if (subscriptionImage) console.log("Images use Codex/ChatGPT subscription access. Run codex login if you have not signed in. No DEAPI key is required.");
+  else await requestKey("deapi");
 
   let models: DeapiModel[];
   try {
-    models = await fetchModelsOrExplain();
-    console.log("DEAPI accepted the active key.\n");
+    models = subscriptionImage ? [] : await fetchModelsOrExplain();
+    if (!subscriptionImage) console.log("DEAPI accepted the active key.\n");
   } catch (error) {
     if (isAuthenticationError(error)) throw error;
     console.log(`Could not load image models: ${(error as Error).message}`);
     models = [];
   }
 
-  const config = await loadConfig();
   config.enhancement = await confirm({ message: "Enhance prompts with an AI prompt model?", default: config.enhancement });
   if (config.enhancement) {
     config.promptModel = await select<PromptModelId>({
@@ -208,8 +220,9 @@ async function setup() {
       choices: promptModels.map((model) => ({ name: `${model.label} · ${model.provider}`, value: model.id }))
     });
     const promptProvider = promptModels.find((model) => model.id === config.promptModel)!.provider;
-    if (promptProvider !== "local") await requestKey(promptProvider, { optional: true });
-    else console.log("Local prompt writing needs no provider key. Run flux local install, then flux local start in a separate terminal.");
+    if (promptProvider === "local") console.log("Local prompt writing needs no provider key. Run flux local install, then flux local start in a separate terminal.");
+    else if (promptProvider === "codex") console.log("Codex prompt writing uses your Codex CLI login. Run codex login if you have not signed in.");
+    else await requestKey(promptProvider, { optional: true });
   }
 
   if (models.length) {
@@ -294,8 +307,10 @@ async function showModels() {
   const config = await loadConfig();
   console.log("Prompt models\n");
   for (const model of promptModels) {
-    console.log(`  ${model.id === config.promptModel ? "●" : "○"} ${model.id.padEnd(22)} ${model.provider} · ${model.provider === "local" ? "no API key required" : await safeKeyStatus(model.provider)}`);
+    const status = model.provider === "local" ? "no API key required" : model.provider === "codex" ? "uses Codex CLI login" : await safeKeyStatus(model.provider);
+    console.log(`  ${model.id === config.promptModel ? "●" : "○"} ${model.id.padEnd(22)} ${model.provider} · ${status}`);
   }
+  console.log(`\nSubscription image model\n\n  ${config.imageModel === CODEX_IMAGE_MODEL ? "●" : "○"} ${CODEX_IMAGE_MODEL} · GPT Image 2 · Codex CLI login, included usage limits`);
   console.log("\nDEAPI image models\n");
   try {
     const models = await fetchModelsOrExplain();
@@ -331,8 +346,9 @@ async function generate(description: string) {
   let offlineDirection: OfflineWallpaperDirection | undefined;
   if (config.enhancement) {
     const promptProvider = promptModels.find((model) => model.id === config.promptModel)!.provider;
-    const promptKey = promptProvider === "local" ? "" : await getApiKey(promptProvider);
-    if (promptProvider !== "local" && !promptKey && process.stdin.isTTY && process.stdout.isTTY) {
+    const keyless = promptProvider === "local" || promptProvider === "codex";
+    const promptKey = keyless ? "" : await getApiKey(promptProvider);
+    if (!keyless && !promptKey && process.stdin.isTTY && process.stdout.isTTY) {
       offlineDirection = await collectOfflineWallpaperDirection();
     }
   }
@@ -389,6 +405,7 @@ export async function runCli(args = Bun.argv.slice(2)) {
   const [command, subcommand] = args;
   if (command === "--help" || command === "-h" || command === "help") return console.log(help);
   if (command === "--version" || command === "-v") return console.log(VERSION);
+  if (command === "forest") return runForestCommand(args.slice(1));
   if (command === "local") {
     if (subcommand === "install") return installLocal(args.includes("--cpu"));
     if (subcommand === "start") return startLocal();
@@ -400,8 +417,9 @@ export async function runCli(args = Bun.argv.slice(2)) {
     if (!request) throw new Error("Usage: flux prompt <idea>");
     const config = await loadConfig();
     const provider = promptModels.find((model) => model.id === config.promptModel)!.provider;
-    const apiKey = provider === "local" ? "" : await getApiKey(provider);
-    if (provider !== "local" && !apiKey) throw new Error(`No ${provider} key configured. Select flux-local with flux -pm to use your local model.`);
+    const keyless = provider === "local" || provider === "codex";
+    const apiKey = keyless ? "" : await getApiKey(provider);
+    if (!keyless && !apiKey) throw new Error(`No ${provider} key configured. Select flux-local or codex with flux -pm to use a keyless prompt writer.`);
     const catalogue = await discoverSkills();
     const result = await enhancePrompt({ request, model: config.promptModel, apiKey: apiKey ?? "", skills: catalogue.skills });
     return console.log(result.prompt);
@@ -416,8 +434,8 @@ export async function runCli(args = Bun.argv.slice(2)) {
     if (subcommand === "updates") return configureUpdates();
     throw new Error(`Unknown config command: ${subcommand}`);
   }
-  if (command === "prompt-model" || command === "-pm") return configurePromptModel();
-  if (command === "image-model" || command === "-im") return configureImageModel();
+  if (command === "prompt-model" || command === "-pm") return configurePromptModel(subcommand);
+  if (command === "image-model" || command === "-im") return configureImageModel(subcommand);
   if (command === "models") return showModels();
   if (command === "skills") return showSkills();
   if (command === "wallpaper" && subcommand === "next") {

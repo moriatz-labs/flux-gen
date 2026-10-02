@@ -12,7 +12,7 @@ Attention-projection LoRA rank 8, alpha 16, dropout 0.05; NF4 double quantizatio
 
 On 30 fresh ideas, the adapter received 36.7% blind editorial preference credit against the instructed base model, counting ties as half. The target was 60%. One dedicated constraint case added red to a black-and-white scene. Final format checks passed for all 30, and no unexplained complete training-prompt copying was flagged. Reviews were performed by Codex, not an independent human study. This model did **not** pass its quality-promotion criteria; the maintainer chose to release this frozen version as the local default. It may over-elaborate, drift from subjects, mix styles or violate constraints. No image-quality superiority is claimed.
 
-Ten warm Windows RTX 5070 Laptop CLI requests had median 1.55 seconds and peak total GPU memory 3949 MiB. Initial CUDA compilation can take minutes. CPU and macOS performance are unmeasured. The separate SDXL experiment was prepared but not run. DEAPI remains the image renderer.
+Ten warm Windows RTX 5070 Laptop CLI requests had median 1.55 seconds and peak total GPU memory 3949 MiB. Initial CUDA compilation can take minutes. CPU and macOS performance are unmeasured. The separate SDXL experiment was prepared but not run. This card describes the optional local text model. Images can use the selected DEAPI renderer or the separate Codex subscription route.
 
 ## Distribution
 

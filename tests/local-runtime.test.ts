@@ -5,12 +5,14 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { downloadVerified, runtimeFiles } from "../src/local-runtime.ts";
 
-test("runtime selection supports CPU Windows and native macOS, rejects unsupported platforms", () => {
+test("runtime selection supports Windows, macOS, and Linux, rejects unsupported architectures", () => {
   expect(runtimeFiles("win32", "x64").length).toBe(2);
   expect(runtimeFiles("win32", "x64", true)[0]!.name).toContain("cpu");
   expect(runtimeFiles("darwin", "arm64")[0]!.name).toContain("macos-arm64");
   expect(runtimeFiles("darwin", "x64")[0]!.name).toContain("macos-x64");
-  expect(() => runtimeFiles("linux", "x64")).toThrow("supports Windows");
+  expect(runtimeFiles("linux", "x64")[0]!.name).toContain("ubuntu-vulkan-x64");
+  expect(runtimeFiles("linux", "x64", true)[0]!.name).toBe("llama-b10819-bin-ubuntu-x64.tar.gz");
+  expect(() => runtimeFiles("linux", "arm64")).toThrow("supports Windows/Linux");
 });
 test("downloads are verified, reused only when intact, and corrupt content is never installed", async () => {
   const directory = await mkdtemp(join(tmpdir(), "flux-download-"));

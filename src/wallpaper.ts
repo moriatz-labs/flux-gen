@@ -6,14 +6,12 @@ import { promisify } from "node:util";
 const execFile = promisify(execFileCallback);
 const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".bmp", ".heic"]);
 
-export interface SlideshowRuntime {
+export interface WallpaperRuntime {
   platform?: NodeJS.Platform;
-  executable?: string;
-  main?: string;
   run?: (file: string, args: string[]) => Promise<{ stdout: string; stderr: string }>;
 }
 
-function runner(runtime: SlideshowRuntime) {
+function runner(runtime: WallpaperRuntime) {
   return runtime.run ?? (async (file: string, args: string[]) => {
     const result = await execFile(file, args, { windowsHide: true, timeout: 15_000 });
     return { stdout: result.stdout, stderr: result.stderr };
@@ -29,7 +27,7 @@ export async function chooseWallpaper(directory: string) {
   return paths[Math.floor(Math.random() * paths.length)]!;
 }
 
-export async function applyWallpaper(path: string, runtime: SlideshowRuntime = {}) {
+export async function applyWallpaper(path: string, runtime: WallpaperRuntime = {}) {
   const platform = runtime.platform ?? process.platform;
   const run = runner(runtime);
   if (platform === "win32") {
@@ -44,10 +42,18 @@ export async function applyWallpaper(path: string, runtime: SlideshowRuntime = {
     await run("osascript", ["-e", script, path]);
     return;
   }
+  if (platform === "linux") {
+    try {
+      await run("noctalia", ["msg", "wallpaper-set", path]);
+    } catch (error) {
+      throw new Error(`Linux wallpaper application requires a running Noctalia shell. ${(error as Error).message}`);
+    }
+    return;
+  }
   throw new Error(`Applying wallpapers is not supported on ${platform}.`);
 }
 
-export async function applyNextWallpaper(directory: string, runtime: SlideshowRuntime = {}) {
+export async function applyNextWallpaper(directory: string, runtime: WallpaperRuntime = {}) {
   const path = await chooseWallpaper(directory);
   await applyWallpaper(path, runtime);
   return path;

@@ -13,7 +13,7 @@
   <a href="#commands">Commands</a>
 </p>
 
-FluxGen is a small Bun-powered TypeScript CLI. It can improve your description with focused wallpaper skills, render the image through DEAPI, save it to your operating system's `Pictures/FluxGen` directory, and immediately set it as your wallpaper.
+FluxGen is a small Bun-powered TypeScript CLI. It can improve your description with focused wallpaper skills, render through your Codex/ChatGPT subscription or DEAPI, save the image to your operating system's `Pictures/FluxGen` directory, and immediately set it as your wallpaper.
 
 ![An aurora wallpaper generated with FluxGen](website/public/wallpapers/aurora-borealis.webp)
 
@@ -33,7 +33,39 @@ irm https://flux-gen.moriatz.com/install.ps1.txt | iex
 
 The installers download the latest native binary from GitHub Releases and verify its SHA-256 checksum before installing it.
 
+Linux x64 (local source build):
+
+```sh
+bun install --frozen-lockfile
+bun run build:cli
+./dist/flux local install
+```
+
+Linux stores settings under `${XDG_CONFIG_HOME:-~/.config}/flux-gen`. Its local model uses the checksum-pinned llama.cpp Vulkan runtime by default; use `local install --cpu` without a compatible GPU. Applying wallpapers requires a running Noctalia shell with `noctalia msg wallpaper-set`; other Linux desktops can use save-only mode. Linux releases and automatic binary installation are not available; update the source and rebuild manually.
+
 ## Quick start
+
+### Daily enchanted forests
+
+The forest recipe directs immersive Avatar-inspired elemental woodland scenes with fire, earth, golden-yellow lightning, violet-purple energy, water and air. It rotates 12 lighting palettes and 36 matching elemental phenomena while preserving the depth and atmosphere of moonlit and golden forests. Ferns, moss, oversized botanical objects and characters are excluded. This is persistent prompt guidance, not model-weight training. Connect a dedicated shared assets checkout, then generate today's forest without interactive prompts:
+
+```sh
+flux -pm codex
+flux -im codex-image
+flux forest init --assets /absolute/path/to/Global-Assets --remote https://github.com/YOUR_ACCOUNT/Global-Assets.git --timezone Asia/Kolkata
+flux forest plan
+flux forest daily --publish
+```
+
+`daily` generates once per calendar day, preserves the original PNG, creates a WebP with FFmpeg, and saves prompts, actual dimensions and SHA-256 metadata under `wallpapers/forests/daily/YYYY/MM/`. Re-running it reuses the saved image and retries incomplete conversion or publication. Palettes rotate without repetition; each elemental family rotates its six matching phenomena. Configure Git LFS in the assets repository to keep binary history manageable.
+
+Publishing requires that dedicated checkout on `main` with the expected `origin`. Only today's PNG, WebP and manifest are committed. Unrelated staged changes, remote updates, or unrelated unpushed commits stop publication while preserving the generated image. Image generation uses the Codex subscription route and never silently falls back to a paid provider.
+
+Schedule `flux forest daily --publish` in a Codex chat for a daily run. Local schedules require the computer on and the app running. Other repositories can consume Global Assets as a Git submodule, updating their pinned commit when they want new artwork.
+
+On Noctalia, automatic login-greeter appearance synchronization can request administrator authentication after a wallpaper change. To keep unattended desktop changes unprivileged, set `auto_sync = false` in the user's `[shell.greeter_sync]` configuration and run `noctalia msg config-reload`. Manual greeter synchronization retains normal system authentication.
+
+### General wallpaper generation
 
 After installation, download the local prompt model and runtime, then run the guided setup for image generation:
 
@@ -42,7 +74,7 @@ flux local install
 flux setup
 ```
 
-Flux defaults to the frozen local Qwen prompt writer. It needs no prompt-provider API key. DEAPI still renders images and requires its own key, stored in your operating system credential store. Existing users keep their selected provider until they run `flux local install` or choose `flux-local` with `flux -pm`.
+Flux defaults to the frozen local Qwen prompt writer. It needs no prompt-provider API key. The default DEAPI renderer requires its own key, stored in your operating system credential store. Alternatively, select `codex-image` to render through your Codex/ChatGPT subscription without provider keys. Existing users keep their selected provider until they run `flux local install` or choose another model with `flux -pm`.
 
 Run `flux local start` in a separate terminal and leave it open. Preview text with `flux prompt "a quiet embroidered coastline"`, or generate an image with the command below. The model download is about 2.50 GB; allow at least 6 GB free disk space. Windows defaults to NVIDIA CUDA; use `flux local install --cpu` on Windows without NVIDIA. macOS uses native Intel/Apple Silicon runtimes. CPU inference can be considerably slower; laptop measurements are not a guarantee for other hardware.
 
@@ -58,9 +90,26 @@ Use `flux config` to confirm the selected models, output directory, enhancement 
 
 ## API key setup
 
+### Images through your ChatGPT subscription
+
+For an entirely subscription-backed workflow, sign in to Codex and select both the prompt writer and image renderer:
+
+```sh
+codex login
+flux -pm codex
+flux -im codex-image
+flux "a magical forest with silver moonlight, turquoise pools and softly glowing mushrooms"
+```
+
+`codex` explicitly uses GPT-6 Astra with high reasoning for art direction. `codex-image` invokes the built-in GPT Image 2 renderer through that same CLI login. This route requires neither `DEAPI_API_KEY` nor `OPENAI_API_KEY` and makes no DEAPI requests. The image call uses only the built-in generation tool, with shells, plugins, browsers, and project instructions disabled. Flux validates that the returned PNG is a new file inside Codex's `generated_images` directory before copying it to Pictures/FluxGen. The original generated file is preserved.
+
+Image generation counts toward your [included Codex usage limits](https://learn.chatgpt.com/docs/pricing#image-generation-usage-limits), using them faster than text-only requests. This is subscription access through Codex; direct Images API calls are separately billed. The [built-in image-generation docs](https://learn.chatgpt.com/docs/image-generation) currently specify GPT Image 2. The tool controls final resolution and quality; a requested size is not guaranteed. Generation can take several minutes. Failures stop the command without switching to a paid provider.
+
+`flux -pm codex-sol` selects GPT-6.1 Sol if that model is available to your Codex login. Account availability can differ from the API catalogue. Use `codex` when Sol is unavailable. `flux config` shows the actual selected prompt model, reasoning level, and image route.
+
 ### 1. Create a DEAPI key
 
-DEAPI is always required because it renders the wallpaper.
+A DEAPI key is required only when you choose a DEAPI image model rather than `codex-image`.
 
 1. Open the [DEAPI API Keys page](https://app.deapi.ai/settings/api-keys) and sign up or sign in.
 2. Open **Dashboard → Settings → API Keys**.
@@ -79,6 +128,7 @@ Choose a model during `flux setup` or change it later with `flux -pm`:
 | Provider | Prompt models |
 | --- | --- |
 | Local (default) | `flux-local` — frozen Qwen3-4B positive-v2 |
+| Codex CLI | `codex` — GPT-6 Astra; `codex-sol` — GPT-6.1 Sol; both use high reasoning and your existing CLI login |
 | OpenAI | `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-5.6-sol` |
 | Google | `gemini-3.6-flash` |
 | Anthropic | `claude-haiku-4-5`, `claude-sonnet-5`, `claude-opus-5` |
@@ -102,6 +152,12 @@ Every question defaults to **Auto**. Press Enter to skip any individual question
 
 Run `flux config key` after creating the key, choose the matching provider, and select **Add or replace**. Flux stores entered keys in the native operating-system credential store rather than a project file.
 
+### Use your Codex account for prompt writing
+
+Install the Codex CLI and run `codex login`, then run `flux -pm codex` for GPT-6 Astra or `flux -pm codex-sol` for GPT-6.1 Sol. Flux invokes `codex exec` with an explicit model and high reasoning for each wallpaper prompt, using the CLI's existing authentication. It requires no prompt-provider key in FluxGen and no local model server. Model availability and Codex account usage limits still apply. With a DEAPI image model, rendering uses its own key; with `codex-image`, rendering uses your Codex subscription. An unavailable selected model fails before image submission; Flux never silently changes models.
+
+The prompt writer runs in an empty temporary directory with a read-only sandbox, tools and plugins disabled, and no project instructions. Only the wallpaper request and relevant prompt skills are sent as input. Image-provider API keys are excluded from the child environment. Failed Codex requests stop generation rather than falling back silently.
+
 To replace or remove a stored key, run the same command and choose the appropriate action. `flux config` reports only whether each key is configured; it never prints the secret.
 
 ### Use FluxGen without prompt enhancement
@@ -112,7 +168,7 @@ If you want your original description sent directly to DEAPI, turn enhancement o
 flux config enhancement
 ```
 
-Choose **No**. In this mode, only the DEAPI key is required and wallpaper skills are not applied.
+Choose **No**. In this mode, wallpaper skills are not applied. A DEAPI image model still requires its key; `codex-image` uses your Codex login.
 
 ### Environment variables
 
@@ -125,7 +181,7 @@ For automation or CI, these environment variables override keys stored in the op
 | `GEMINI_API_KEY` | Google Gemini |
 | `ANTHROPIC_API_KEY` | Anthropic |
 
-FluxGen does not load project `.env` files. Store automation credentials in the secret manager provided by your CI or operating system. Never put a real key in source code, commits, issues, screenshots, command examples, or shell history.
+The standalone FluxGen binary does not load project `.env` files. Bun source invocations can explicitly load a local file with `bun --env-file=.env.local run src/index.ts`. If using this development option, keep the file git-ignored and readable only by your user. Store automation credentials in the secret manager provided by your CI or operating system. Never put a real key in source code, commits, issues, screenshots, command examples, or shell history.
 
 ## Updates
 
@@ -162,8 +218,8 @@ Update checks run at most once every 24 hours. Automatic updates use the same pu
 | `flux config wallpaper` | Apply new wallpapers immediately or save them only |
 | `flux config updates` | Choose automatic, notification-only, or disabled update checks |
 | `flux prompt-model`, `flux -pm` | Select the prompt model |
-| `flux image-model`, `flux -im` | Select a live DEAPI image model |
-| `flux models` | List prompt models and live DEAPI image models |
+| `flux image-model`, `flux -im` | Select subscription or DEAPI image generation; `flux -im codex-image` selects your Codex login |
+| `flux models` | List prompt models, subscription rendering, and current DEAPI image models |
 | `flux skills` | List bundled, personal, and project skills |
 | `flux wallpaper next` | Immediately rotate to another saved Flux wallpaper |
 | `flux update --check` | Check for a newer release |
@@ -176,6 +232,7 @@ Each generated image is saved in `Pictures/FluxGen` and immediately applied as t
 
 - **Windows:** Flux applies the image through the native desktop API.
 - **macOS:** Flux applies the image through System Events. macOS may ask for Automation permission the first time.
+- **Linux with Noctalia:** Flux applies the image through the shell's wallpaper IPC command.
 
 Flux does not create a scheduled task or background process. Run `flux config wallpaper` if you prefer to save new images without applying them.
 
@@ -258,7 +315,7 @@ Flux keeps its selectable prompt models deliberately explicit:
 
 Use only model IDs documented by the provider. DEAPI image models do not need to be hard-coded: `flux -im` discovers its current text-to-image catalogue dynamically.
 
-Native Windows x64, macOS x64, and macOS arm64 binaries are published with SHA-256 checksums for tagged releases. Linux is not currently supported.
+Native Windows x64, macOS x64, and macOS arm64 binaries are published with SHA-256 checksums for tagged releases. Linux x64 can be built from source with the local Vulkan or CPU prompt runtime; applying wallpapers currently supports Noctalia.
 
 ## Security
 

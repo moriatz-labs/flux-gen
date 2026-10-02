@@ -53,7 +53,7 @@ export async function enhancePrompt({
   if (!artDirection) throw new Error("The wallpaper-art-direction skill is missing.");
   const candidates = skills.filter((skill) => !coreSkillNames.has(skill.name));
   let selectedNames: string[] = [];
-  if (model === "flux-local") selectedNames = selectLocalSkills(request, candidates);
+  if (model === "flux-local" || model === "codex" || model === "codex-sol") selectedNames = selectLocalSkills(request, candidates);
   else if (candidates.length) {
     const catalogue = candidates.map((skill) => `- ${skill.name}: ${skill.description}`).join("\n");
     const selection = await completePrompt(

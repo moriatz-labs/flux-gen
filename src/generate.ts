@@ -6,6 +6,7 @@ import { discoverSkills } from "./skills.ts";
 import { isAuthenticationError } from "./http.ts";
 import { buildOfflineWallpaperPrompt, type OfflineWallpaperDirection } from "./offline-prompt.ts";
 import type { FluxConfig } from "./types.ts";
+import { CODEX_IMAGE_MODEL, generateCodexImage } from "./codex-image.ts";
 
 export async function generateWallpaper(
   request: string,
@@ -23,6 +24,7 @@ export async function generateWallpaper(
     submitImage?: typeof submitImage;
     waitForImage?: typeof waitForImage;
     downloadImage?: typeof downloadImage;
+    generateCodexImage?: typeof generateCodexImage;
   } = {}
 ) {
   const readKey = dependencies.getApiKey ?? getApiKey;
@@ -31,17 +33,19 @@ export async function generateWallpaper(
   const submit = dependencies.submitImage ?? submitImage;
   const wait = dependencies.waitForImage ?? waitForImage;
   const download = dependencies.downloadImage ?? downloadImage;
-  const deapiKey = await readKey("deapi");
-  if (!deapiKey) throw new Error("DEAPI key missing. Run `flux config key` or set DEAPI_API_KEY.");
+  const subscriptionImage = config.imageModel === CODEX_IMAGE_MODEL;
+  const deapiKey = subscriptionImage ? null : await readKey("deapi");
+  if (!subscriptionImage && !deapiKey) throw new Error("DEAPI key missing. Run `flux config key` or set DEAPI_API_KEY, or select flux -im codex-image for subscription image generation.");
   let finalPrompt = request;
   let selectedSkills: string[] = [];
   if (config.enhancement) {
     const promptProvider = providerForModel(config.promptModel);
-    const promptKey = promptProvider === "local" ? "" : await readKey(promptProvider);
-    if (promptProvider !== "local" && !promptKey) {
+    const keyless = promptProvider === "local" || promptProvider === "codex";
+    const promptKey = keyless ? "" : await readKey(promptProvider);
+    if (!keyless && !promptKey) {
       finalPrompt = buildOfflineWallpaperPrompt(request, callbacks.offlineDirection);
       selectedSkills = ["wallpaper-foundation", "wallpaper-art-direction"];
-      callbacks.onNotice?.(`No ${promptProvider} key is configured. Using Flux's built-in wallpaper direction before DEAPI.`);
+      callbacks.onNotice?.(`No ${promptProvider} key is configured. Using Flux's built-in wallpaper direction before ${subscriptionImage ? "Codex image generation" : "DEAPI"}.`);
     } else {
       callbacks.onPhase?.(`Enhancing with ${config.promptModel}…`);
       try {
@@ -50,16 +54,21 @@ export async function generateWallpaper(
         finalPrompt = enhanced.prompt;
         selectedSkills = enhanced.skills;
       } catch (error) {
-        if (promptProvider === "local" || !isAuthenticationError(error)) throw error;
+        if (keyless || !isAuthenticationError(error)) throw error;
         finalPrompt = buildOfflineWallpaperPrompt(request, callbacks.offlineDirection);
         selectedSkills = ["wallpaper-foundation", "wallpaper-art-direction"];
-        callbacks.onNotice?.(`${config.promptModel} rejected its API key (${error.status}). Using Flux's built-in wallpaper direction before DEAPI.`);
+        callbacks.onNotice?.(`${config.promptModel} rejected its API key (${error.status}). Using Flux's built-in wallpaper direction before ${subscriptionImage ? "Codex image generation" : "DEAPI"}.`);
       }
     }
   }
   callbacks.onPhase?.(`Generating with ${config.imageModel}…`);
-  const requestId = await submit({ apiKey: deapiKey, prompt: finalPrompt, model: config.imageModel });
-  const url = await wait({ apiKey: deapiKey, requestId, onProgress: callbacks.onProgress });
+  if (subscriptionImage) {
+    callbacks.onNotice?.("GPT Image 2 through your Codex login; uses included Codex image-generation limits. This can take a few minutes.");
+    const image = await (dependencies.generateCodexImage ?? generateCodexImage)(finalPrompt, config.outputDirectory, request, { model: config.promptModel === "codex-sol" ? "gpt-6.1-sol" : "gpt-6-astra" });
+    return { ...image, prompt: finalPrompt, skills: selectedSkills, enhanced: selectedSkills.length > 0 };
+  }
+  const requestId = await submit({ apiKey: deapiKey!, prompt: finalPrompt, model: config.imageModel });
+  const url = await wait({ apiKey: deapiKey!, requestId, onProgress: callbacks.onProgress });
   callbacks.onPhase?.("Saving wallpaper…");
   const path = await download({ url, outputDirectory: config.outputDirectory, request });
   return { path, prompt: finalPrompt, skills: selectedSkills, requestId, enhanced: selectedSkills.length > 0 };

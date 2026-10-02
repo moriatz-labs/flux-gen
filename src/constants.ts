@@ -1,15 +1,16 @@
 import type { PromptModelId, ProviderId } from "./types.ts";
 
-export const APP_NAME = "FluxGen";
 export const VERSION = "0.10.0";
 export const DEFAULT_IMAGE_MODEL = "Flux_2_Klein_4B_BF16";
 
 export const promptModels: Array<{
   id: PromptModelId;
-  provider: Exclude<ProviderId, "deapi"> | "local";
+  provider: Exclude<ProviderId, "deapi"> | "local" | "codex";
   label: string;
 }> = [
   { id: "flux-local", provider: "local", label: "Flux local prompt writer" },
+  { id: "codex", provider: "codex", label: "Codex · GPT-6 Astra · high reasoning (CLI login)" },
+  { id: "codex-sol", provider: "codex", label: "Codex · GPT-6.1 Sol · high reasoning (CLI login)" },
   { id: "gpt-5.6-luna", provider: "openai", label: "GPT-5.6 Luna" },
   { id: "gpt-5.6-terra", provider: "openai", label: "GPT-5.6 Terra" },
   { id: "gpt-5.6-sol", provider: "openai", label: "GPT-5.6 Sol" },

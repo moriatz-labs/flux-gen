@@ -20,10 +20,12 @@ import environment from "../skills/environment-wallpaper/SKILL.md" with { type: 
 import color from "../skills/color-direction/SKILL.md" with { type: "text" };
 // @ts-expect-error Bun text import
 import artDirection from "../skills/wallpaper-art-direction/SKILL.md" with { type: "text" };
+// @ts-expect-error Bun text import
+import forest from "../skills/enchanted-forest/SKILL.md" with { type: "text" };
 import { personalSkillsDirectory, projectSkillsDirectory } from "./paths.ts";
 import type { SkillCatalogue, SkillSource, WallpaperSkill } from "./types.ts";
 
-const bundledSources = [foundation, composition, lighting, photography, illustration, abstract, environment, color, artDirection];
+const bundledSources = [foundation, composition, lighting, photography, illustration, abstract, environment, color, artDirection, forest];
 
 export function parseSkill(source: string, origin: SkillSource, path?: string): WallpaperSkill {
   const match = source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/);

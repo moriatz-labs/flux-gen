@@ -1,5 +1,7 @@
 export const promptModelIds = [
   "flux-local",
+  "codex",
+  "codex-sol",
   "gpt-5.6-luna",
   "gpt-5.6-terra",
   "gpt-5.6-sol",

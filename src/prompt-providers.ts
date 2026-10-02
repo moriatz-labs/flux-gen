@@ -1,6 +1,7 @@
 import { promptModels } from "./constants.ts";
 import { fetchJson } from "./http.ts";
 import { completeLocalPrompt } from "./local-prompt.ts";
+import { completeCodexPrompt } from "./codex-prompt.ts";
 import type { PromptModelId } from "./types.ts";
 
 export function providerForModel(model: PromptModelId) {
@@ -23,6 +24,7 @@ export async function completePrompt(
 ) {
   const provider = providerForModel(model);
   if (provider === "local") return completeLocalPrompt(system, user, fetchImplementation);
+  if (provider === "codex") return completeCodexPrompt(system, user, { model: model === "codex-sol" ? "gpt-6.1-sol" : "gpt-6-astra" });
   if (provider === "openai") {
     const payload = await fetchJson<{
       output_text?: string;

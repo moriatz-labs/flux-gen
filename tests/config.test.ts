@@ -1,13 +1,19 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { defaultConfig, loadConfig, saveConfig } from "../src/config.ts";
+import { configDirectory } from "../src/paths.ts";
 
 let temporary = "";
 afterEach(async () => { if (temporary) await rm(temporary, { recursive: true, force: true }); temporary = ""; });
 
 describe("configuration", () => {
+  test("Linux uses an absolute XDG config root and falls back safely", () => {
+    expect(configDirectory("linux", { XDG_CONFIG_HOME: "/tmp/flux-xdg" })).toBe("/tmp/flux-xdg/flux-gen");
+    expect(configDirectory("linux", {})).toBe(join(homedir(), ".config", "flux-gen"));
+    expect(configDirectory("linux", { XDG_CONFIG_HOME: "relative" })).toBe(join(homedir(), ".config", "flux-gen"));
+  });
   test("uses safe defaults when no file exists", async () => {
     temporary = await mkdtemp(join(tmpdir(), "flux-config-"));
     const config = await loadConfig(join(temporary, "missing.json"));
@@ -32,5 +38,20 @@ describe("configuration", () => {
     const config = { ...defaultConfig(), promptModel: "flux-local" as const, updateMode: "off" as const };
     await saveConfig(config, path);
     expect(await loadConfig(path)).toEqual(config);
+  });
+
+  test("preserves a selected Codex prompt writer", async () => {
+    temporary = await mkdtemp(join(tmpdir(), "flux-config-"));
+    const path = join(temporary, "config.json");
+    const config = { ...defaultConfig(), promptModel: "codex" as const };
+    await saveConfig(config, path);
+    expect((await loadConfig(path)).promptModel).toBe("codex");
+  });
+
+  test("preserves the subscription image route", async () => {
+    temporary = await mkdtemp(join(tmpdir(), "flux-config-"));
+    const path = join(temporary, "config.json");
+    await saveConfig({ ...defaultConfig(), imageModel: "codex-image", promptModel: "codex" }, path);
+    expect((await loadConfig(path)).imageModel).toBe("codex-image");
   });
 });

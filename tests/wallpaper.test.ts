@@ -34,8 +34,23 @@ describe("desktop wallpaper", () => {
     expect(calls).toContain(selected);
   });
 
+  test("passes Linux wallpaper paths literally to Noctalia", async () => {
+    const calls: Array<[string, string[]]> = [];
+    const path = "/tmp/quiet sky $(touch unsafe); 'quote'.png";
+    await applyWallpaper(path, { platform: "linux", run: async (file, args) => {
+      calls.push([file, args]);
+      return { stdout: "", stderr: "" };
+    } });
+    expect(calls).toEqual([["noctalia", ["msg", "wallpaper-set", path]]]);
+  });
+
+  test("explains Linux wallpaper backend failures", async () => {
+    await expect(applyWallpaper("/tmp/sky.png", {
+      platform: "linux", run: async () => { throw new Error("socket unavailable"); }
+    })).rejects.toThrow("running Noctalia shell");
+  });
+
   test("rejects unsupported operating systems", async () => {
-    temporary = await mkdtemp(join(tmpdir(), "flux-wallpaper-"));
-    await expect(applyWallpaper("/tmp/sky.png", { platform: "linux" })).rejects.toThrow("not supported");
+    await expect(applyWallpaper("/tmp/sky.png", { platform: "freebsd" })).rejects.toThrow("not supported");
   });
 });

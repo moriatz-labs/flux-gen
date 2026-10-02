@@ -43,8 +43,6 @@ export async function getApiKeyDetails(provider: ProviderId): Promise<{
   }
 }
 
-export async function hasApiKey(provider: ProviderId) { return Boolean(await getApiKey(provider)); }
-
 export async function setApiKey(provider: ProviderId, value: string) {
   const normalized = value.trim();
   if (!normalized) throw new Error("API key cannot be empty.");
