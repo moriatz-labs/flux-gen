@@ -1,5 +1,9 @@
 # FluxGen
 
+**Status: completed legacy project.** FluxGen remains the original DEAPI wallpaper CLI, with local Qwen prompt writing and its existing optional cloud prompt providers. The source is restored to the completed `edd7c3c` baseline; the experimental Codex subscription, daily scheduling and Paper archive additions are separate work.
+
+**Daily desktop themes now live in [Morph](https://github.com/moriatz-labs/morph).** Morph has its own repository, `morph` command, configuration and 08:00 Asia/Kolkata Codex schedule. It uses the Codex subscription for OpenAI wallpaper generation and coordinates Noctalia widget settings with each day's theme. FluxGen does not own that schedule, change Noctalia widgets, or depend on Morph. The earlier experimental commits remain in Git history for provenance.
+
 <p align="center">
   <img src="website/public/flux-logo-light-cropped.png" alt="FluxGen" width="128" />
 </p>
